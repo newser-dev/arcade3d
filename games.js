@@ -9,7 +9,7 @@
 const GAMES = [
   {
     id: 'wing-dodge-3d',
-    title: 'Wing Dodge 3D',
+    title: '윙 닷지 3D',
     titleEn: 'Wing Dodge 3D',
     emoji: '🪽',
     desc: '사방에서 튀어나오는 장애물을 피해 날아라! 4개 월드 · 별 상점 · 15개 언어',
