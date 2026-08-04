@@ -43,11 +43,17 @@
 
 <script src="games.js"></script>
 <script>
+  const lang = arcadeGetLang();
+  const ko = lang === 'ko';
+  document.documentElement.lang = lang;
+  document.getElementById('back').textContent = ko ? '← 오락실' : '← Arcade';
+
   const id = new URLSearchParams(location.search).get('game');
   const game = GAMES.find(g => g.id === id);
   if (game && game.path) {
-    document.getElementById('title').textContent = game.emoji + ' ' + game.title;
-    document.title = game.title + ' — 3D 오락실';
+    const title = ko ? game.title : (game.titleEn || game.title);
+    document.getElementById('title').textContent = game.emoji + ' ' + title;
+    document.title = title + (ko ? ' — 3D 오락실' : ' — Arcade3D');
     document.getElementById('frame').src = game.path;
   } else {
     location.replace('index.html');
