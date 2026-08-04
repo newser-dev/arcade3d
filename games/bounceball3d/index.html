@@ -59,12 +59,13 @@
 
   #hud { position: fixed; top: 0; left: 0; right: 0; z-index: 5; pointer-events: none;
     display: flex; align-items: flex-start; justify-content: space-between; padding: 12px 14px; }
+  #hudLeft { display: flex; flex-direction: column; align-items: flex-start; gap: 7px; }
   #stageName { font-size: 15px; font-weight: 800; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,.45); background: rgba(0,0,0,.25); padding: 8px 14px; border-radius: 999px; }
-  #starCnt { font-size: 26px; font-weight: 900; color: #ffd76e; text-shadow: 0 2px 0 rgba(0,0,0,.35), 0 4px 10px rgba(0,0,0,.3); }
+  #starCnt { font-size: 24px; font-weight: 900; color: #ffd76e; padding-left: 8px; text-shadow: 0 2px 0 rgba(0,0,0,.35), 0 4px 10px rgba(0,0,0,.3); }
   #hudRight { display: flex; gap: 8px; pointer-events: auto; }
   #timeHud {
     position: fixed; top: 58px; left: 50%; transform: translateX(-50%);
-    z-index: 5; pointer-events: none; font-size: 15px; font-weight: 800;
+    z-index: 5; pointer-events: none; font-size: 22px; font-weight: 800;
     color: #fff; opacity: .9; text-shadow: 0 2px 4px rgba(0,0,0,.5);
   }
   .newRecord { color: #7bffb2; font-weight: 900; }
@@ -108,8 +109,10 @@
 <canvas id="c"></canvas>
 
 <div id="hud" class="hidden">
-  <div id="stageName"></div>
-  <div id="starCnt">★ 0/3</div>
+  <div id="hudLeft">
+    <div id="stageName"></div>
+    <div id="starCnt">★ 0/3</div>
+  </div>
   <div id="hudRight">
     <button class="iconBtn" id="mapBtn">🗺️</button>
     <button class="iconBtn" id="rotL">⟲</button>
