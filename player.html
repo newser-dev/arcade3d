@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>3D 오락실</title>
+<style>
+  :root { --bar-h: 52px; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #0b0d1a; }
+  #bar {
+    height: var(--bar-h);
+    display: flex; align-items: center; gap: 14px;
+    padding: 0 14px;
+    background: #151832;
+    border-bottom: 1px solid rgba(255,255,255,.08);
+    font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
+  }
+  #back {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 16px; border-radius: 10px;
+    background: rgba(55,230,255,.12);
+    border: 1px solid rgba(55,230,255,.4);
+    color: #37e6ff; font-weight: 700; font-size: 14px;
+    text-decoration: none;
+  }
+  #back:hover { background: rgba(55,230,255,.22); }
+  #title { color: #eef0ff; font-weight: 800; font-size: 16px; }
+  #frame {
+    display: block; border: 0;
+    width: 100%; height: calc(100% - var(--bar-h));
+  }
+</style>
+</head>
+<body>
+<div id="bar">
+  <a id="back" href="index.html">← 오락실</a>
+  <span id="title"></span>
+</div>
+<iframe id="frame" allow="fullscreen; autoplay"></iframe>
+
+<script src="games.js"></script>
+<script>
+  const id = new URLSearchParams(location.search).get('game');
+  const game = GAMES.find(g => g.id === id);
+  if (game && game.path) {
+    document.getElementById('title').textContent = game.emoji + ' ' + game.title;
+    document.title = game.title + ' — 3D 오락실';
+    document.getElementById('frame').src = game.path;
+  } else {
+    location.replace('index.html');
+  }
+</script>
+</body>
+</html>

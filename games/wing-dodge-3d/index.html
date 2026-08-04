@@ -1,0 +1,3284 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Wing Dodge 3D — free 3D browser game</title>
+<meta name="description" content="Flap to fly and dodge obstacles closing in from all four sides. 4 worlds, 5 birds with skills, and a star shop. Free, no install, plays on phone and desktop.">
+<link rel="icon" href="icon-600.png">
+<link rel="apple-touch-icon" href="icon-600.png">
+<!-- 링크 공유 미리보기 -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Wing Dodge 3D — free 3D browser game">
+<meta property="og:description" content="Dodge obstacles from all four sides across 4 worlds. Free, no install, plays on phone and desktop.">
+<meta property="og:url" content="https://newser-dev.github.io/wing-dodge-3d/">
+<meta property="og:image" content="https://newser-dev.github.io/wing-dodge-3d/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Wing Dodge 3D — free 3D browser game">
+<meta name="twitter:description" content="Dodge obstacles from all four sides across 4 worlds. Free, no install.">
+<meta name="twitter:image" content="https://newser-dev.github.io/wing-dodge-3d/og-card.png">
+<!-- 애드센스 사이트 소유권 확인 -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6240593008907807"
+     crossorigin="anonymous"></script>
+<script>
+  // Google Analytics (GA4) — 아래 GA_ID에 측정 ID(G-XXXXXXXXXX)를 넣으면 방문자 집계 시작
+  const GA_ID = 'G-FQD6KVG3C0';
+  if (GA_ID) {
+    const s = document.createElement('script');
+    s.async = true;
+    s.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_ID;
+    document.head.appendChild(s);
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function () { dataLayer.push(arguments); };
+    gtag('js', new Date());
+    gtag('config', GA_ID);
+  }
+</script>
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #70c5ce; font-family: 'Segoe UI', sans-serif;
+    touch-action: none; overscroll-behavior: none; -webkit-user-select: none; user-select: none;
+    -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
+  canvas { touch-action: none; }
+  #rotateHint {
+    position: fixed; inset: 0; z-index: 100; background: #2a2f3a;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 18px; color: #fff; font-size: 22px; font-weight: 700; text-align: center; padding: 20px;
+  }
+  #rotateIcon { font-size: 68px; animation: rotateWiggle 1.8s ease-in-out infinite; }
+  @keyframes rotateWiggle { 0%, 100% { transform: rotate(-10deg); } 50% { transform: rotate(80deg); } }
+  #hud { position: fixed; top: 16px; left: 0; right: 0; text-align: center; pointer-events: none; }
+  #score {
+    font-size: 56px; font-weight: 800; color: #fff;
+    text-shadow: 0 3px 0 rgba(0,0,0,.35); user-select: none;
+  }
+  #runStars {
+    position: fixed; top: 20px; left: 20px; font-size: 26px; font-weight: 800;
+    color: #ffd93b; text-shadow: 0 2px 0 rgba(0,0,0,.4); user-select: none; pointer-events: none;
+  }
+  .panel {
+    position: fixed; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 14px;
+    background: rgba(0,0,0,.3); color: #fff; text-align: center; user-select: none;
+  }
+  .panel h1 { font-size: 42px; margin: 0; text-shadow: 0 3px 0 rgba(0,0,0,.4); }
+  #wingLogo { width: min(230px, 66vw); height: auto; margin-bottom: -4px;
+    filter: drop-shadow(0 4px 3px rgba(0,0,0,.35)); }
+  .panel p { font-size: 17px; margin: 0; line-height: 1.7; text-shadow: 0 2px 0 rgba(0,0,0,.4); }
+  .panel .big { font-size: 28px; font-weight: 700; }
+  .btn {
+    padding: 11px 30px; font-size: 19px; font-weight: 700;
+    border: none; border-radius: 12px; cursor: pointer;
+    background: #ffd93b; color: #5b4300; box-shadow: 0 4px 0 #c9a400;
+  }
+  .btn.secondary { background: #7ecbff; color: #05365c; box-shadow: 0 4px 0 #3d92cf; }
+  .btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #c9a400; }
+  .btn:disabled { opacity: .45; cursor: default; }
+  .wallet { font-size: 22px; font-weight: 800; color: #ffd93b; text-shadow: 0 2px 0 rgba(0,0,0,.4); }
+  #reviveTimerWrap { position: relative; width: 76px; height: 76px; }
+  #reviveTimerWrap span {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    font-size: 30px; font-weight: 800; color: #ffd93b; text-shadow: 0 2px 0 rgba(0,0,0,.5);
+  }
+  #reviveRing { stroke-dasharray: 194.8; stroke-dashoffset: 0; }
+  @keyframes ringDrain { to { stroke-dashoffset: 194.8; } }
+  .hidden { display: none !important; }
+  #settingsBtn {
+    position: fixed; top: 16px; right: 16px; z-index: 10;
+    font-size: 22px; background: rgba(0,0,0,.25); border: none;
+    border-radius: 10px; padding: 6px 10px; cursor: pointer;
+  }
+  #skillBtn {
+    position: fixed; bottom: 22px; right: 22px; z-index: 10;
+    width: 74px; height: 74px; border-radius: 50%;
+    background: rgba(0,0,0,.35); border: 3px solid rgba(255,255,255,.5);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    cursor: pointer; user-select: none;
+  }
+  #skillBtn.ready { border-color: #ffd93b; box-shadow: 0 0 14px rgba(255,217,59,.7); }
+  #skillBtn.expiring { animation: skillBlink .2s steps(2) infinite; }
+  @keyframes skillBlink { 50% { opacity: .3; } }
+  #skillIcon { font-size: 26px; }
+  #skillCdTxt { font-size: 16px; font-weight: 800; color: #fff; }
+  .skill-desc { font-size: 12px; color: #ffe9a0; }
+  #touchControls { position: fixed; bottom: 22px; left: 22px; z-index: 10; display: flex; gap: 14px; }
+  #touchControls.hidden { display: none; }
+  #touchControls button {
+    width: 64px; height: 64px; border-radius: 50%; font-size: 24px;
+    background: rgba(0,0,0,.35); border: 3px solid rgba(255,255,255,.5); color: #fff;
+    touch-action: none; user-select: none;
+  }
+  #mapCarousel { display: flex; align-items: center; gap: 14px; }
+  .car-btn {
+    font-size: 34px; line-height: 1; padding: 4px 14px;
+    background: rgba(255,255,255,.15); color: #fff;
+    border: none; border-radius: 12px; cursor: pointer;
+  }
+  .car-btn:active { background: rgba(255,255,255,.35); }
+  #mapCard {
+    min-width: 230px; text-align: center;
+    background: rgba(0,0,0,.25); border: 3px solid #ffd93b;
+    border-radius: 16px; padding: 12px 18px;
+  }
+  #mapName { font-size: 26px; font-weight: 800; text-shadow: 0 2px 0 rgba(0,0,0,.4); }
+  #mapDots { font-size: 11px; letter-spacing: 4px; margin: 4px 0; opacity: .9; }
+  #mapStatus { font-size: 14px; color: #ffe9a0; min-height: 18px; }
+  #modeHint { font-size: 14px; color: #ffe9a0; text-shadow: 0 2px 0 rgba(0,0,0,.4); min-height: 18px; }
+
+  /* 상점 */
+  #shopScroll { max-height: 68vh; overflow-y: auto; padding: 4px 16px; width: min(720px, 94vw); touch-action: pan-y; }
+  .shop-cat { font-size: 20px; font-weight: 800; margin: 14px 0 8px; text-align: left; text-shadow: 0 2px 0 rgba(0,0,0,.4); }
+  .shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+  .card {
+    background: rgba(255,255,255,.12); border-radius: 14px; padding: 10px;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    border: 2px solid transparent;
+  }
+  .card.equipped { border-color: #ffd93b; background: rgba(255,217,59,.18); }
+  .swatch { width: 100%; height: 52px; border-radius: 10px; box-shadow: inset 0 0 0 2px rgba(0,0,0,.15); }
+  .card .name { font-size: 15px; font-weight: 700; }
+  .card button {
+    width: 100%; padding: 6px; font-size: 14px; font-weight: 700;
+    border: none; border-radius: 8px; cursor: pointer;
+    background: #ffd93b; color: #5b4300;
+  }
+  .card button.owned { background: #9be89b; color: #145014; }
+  .card button.equipped-btn { background: #666; color: #ddd; cursor: default; }
+  .card button.locked { background: #b9b9b9; color: #555; }
+  .set-row { display: flex; gap: 18px; align-items: center; font-size: 19px; font-weight: 700; }
+  .set-row span { min-width: 130px; text-align: left; text-shadow: 0 2px 0 rgba(0,0,0,.4); }
+  .set-toggle { padding: 8px 22px; font-size: 16px; min-width: 90px; }
+  .set-toggle.off { background: #9a9a9a; color: #333; box-shadow: 0 4px 0 #6f6f6f; }
+  #langList { max-height: 62vh; overflow-y: auto; display: flex; flex-direction: column;
+    gap: 8px; width: min(320px, 88vw); padding: 4px; touch-action: pan-y; }
+  .lang-item {
+    padding: 12px 18px; font-size: 18px; font-weight: 700; border: 3px solid transparent;
+    border-radius: 12px; cursor: pointer; background: rgba(255,255,255,.15); color: #fff;
+  }
+  .lang-item.sel { border-color: #ffd93b; background: rgba(255,217,59,.25); }
+  .color-row { display: flex; gap: 6px; justify-content: center; }
+  .card .dot {
+    width: 24px; height: 24px; border-radius: 50%; padding: 0;
+    border: 2px solid rgba(255,255,255,.5); cursor: pointer;
+    font-size: 11px; font-weight: 700; color: #fff; text-shadow: 0 1px 1px rgba(0,0,0,.7);
+  }
+  .card .dot.sel { border-color: #ffd93b; box-shadow: 0 0 0 2px #ffd93b; }
+  .card .dot.locked { opacity: .75; }
+</style>
+
+<div id="hud"><div id="score" class="hidden">0</div></div>
+<div id="runStars" class="hidden">⭐ 0</div>
+<button id="settingsBtn" data-i18n-title="settings">⚙️</button>
+<div id="skillBtn" class="hidden"><span id="skillIcon">✨</span><span id="skillCdTxt"></span></div>
+<div id="touchControls" class="hidden">
+  <button id="moveLBtn">◀</button>
+  <button id="moveRBtn">▶</button>
+</div>
+
+<div id="rotateHint" class="hidden">
+  <div id="rotateIcon">📱</div>
+  <div data-i18n="rotateMsg">Rotate your phone to landscape</div>
+  <button class="btn secondary" id="rotateSkipBtn" data-i18n="playPortrait">Play in portrait</button>
+</div>
+
+<div id="startPanel" class="panel">
+  <svg id="wingLogo" viewBox="0 0 220 74" aria-hidden="true">
+    <g fill="#ffd93b" stroke="#e0ac00" stroke-width="1.5" stroke-linejoin="round">
+      <!-- 오른쪽 날개 (중심 x=110에서 오른쪽으로 뻗음, 깃털 4장) -->
+      <path d="M110 60 C132 34 158 28 206 20 L182 33 C179 36 175 37 170 38 L188 36 C176 43 164 46 152 48 L172 46 C156 53 140 55 126 56 L142 55 C128 60 118 60 110 60 Z"/>
+      <!-- 왼쪽 날개 (거울 대칭) -->
+      <path d="M110 60 C88 34 62 28 14 20 L38 33 C41 36 45 37 50 38 L32 36 C44 43 56 46 68 48 L48 46 C64 53 80 55 94 56 L78 55 C92 60 102 60 110 60 Z"/>
+    </g>
+    <circle cx="110" cy="60" r="6" fill="#ff8c00" stroke="#e0ac00" stroke-width="1.5"/>
+  </svg>
+  <h1 data-i18n="title">Wing Dodge 3D</h1>
+  <div class="wallet">⭐ <span id="walletMain">0</span></div>
+  <div id="mapCarousel">
+    <button id="mapPrev" class="car-btn">‹</button>
+    <div id="mapCard">
+      <div id="mapName">🌲 Forest</div>
+      <div id="mapDots"></div>
+      <div id="mapStatus"></div>
+    </div>
+    <button id="mapNext" class="car-btn">›</button>
+  </div>
+  <div id="modeHint"></div>
+  <button class="btn hidden" id="unlockBtn"
+    style="background:#9be89b; color:#145014; box-shadow:0 4px 0 #5cae5c;">🔓 Unlock</button>
+  <button class="btn" id="startBtn" data-i18n="play">Play</button>
+  <button class="btn secondary" id="shopBtn" data-i18n="shop">⭐ Shop</button>
+</div>
+
+<div id="settingsPanel" class="panel hidden">
+  <h1 data-i18n="settings">⚙️ Settings</h1>
+  <div class="set-row"><span data-i18n="sound">🔊 Sound</span><button class="btn set-toggle" id="setSfxBtn">On</button></div>
+  <div class="set-row"><span data-i18n="vibration">📳 Vibration</span><button class="btn set-toggle" id="setVibBtn">On</button></div>
+  <div class="set-row"><span data-i18n="lowGfx">🪶 Low graphics</span><button class="btn set-toggle" id="setLowBtn">Off</button></div>
+  <div class="set-row" id="ctrlRow"><span data-i18n="controls">🎮 Controls</span><button class="btn set-toggle" id="setCtrlBtn">Split touch</button></div>
+  <div class="set-row"><span data-i18n="language">🌐 Language</span><button class="btn set-toggle" id="setLangBtn">English</button></div>
+  <button class="btn secondary" id="helpBtn" data-i18n="help">❓ Help</button>
+  <a class="btn secondary" id="csBtn" style="text-decoration:none; display:inline-block;"
+    href="mailto:korea885642@gmail.com?subject=%5BWing%20Dodge%203D%5D%20Inquiry" data-i18n="support">📮 Support</a>
+  <button class="btn" id="resetBtn"
+    style="background:#ef9a9a; color:#7a1010; box-shadow:0 4px 0 #c96060;" data-i18n="resetData">🗑 Reset data</button>
+  <button class="btn secondary" id="setBackBtn" data-i18n="close">Close</button>
+</div>
+
+<div id="langPanel" class="panel hidden">
+  <h1 data-i18n="langTitle">🌐 Language</h1>
+  <div id="langList"></div>
+  <button class="btn secondary" id="langBackBtn" data-i18n="close">Close</button>
+</div>
+
+<div id="helpPanel" class="panel hidden">
+  <h1 data-i18n="help">❓ Help</h1>
+  <p style="text-align:left; max-width:340px;" data-i18n-html="helpBody"></p>
+  <button class="btn secondary" id="helpBackBtn" data-i18n="close">Close</button>
+</div>
+
+<div id="revivePanel" class="panel hidden">
+  <h1 data-i18n="reviveQ">💫 Revive?</h1>
+  <div id="reviveTimerWrap">
+    <svg width="76" height="76" viewBox="0 0 76 76">
+      <circle cx="38" cy="38" r="31" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="7"/>
+      <circle id="reviveRing" cx="38" cy="38" r="31" fill="none" stroke="#ffd93b" stroke-width="7"
+        stroke-linecap="round" transform="rotate(-90 38 38)"/>
+    </svg>
+    <span id="reviveCount">5</span>
+  </div>
+  <p class="big"><span data-i18n="score">Score</span>: <span id="reviveScore">0</span></p>
+  <button class="btn" id="adReviveBtn">📺 Watch ad to revive</button>
+  <button class="btn secondary" id="starReviveBtn">⭐ 20 to revive</button>
+  <button class="btn" id="giveUpBtn" style="background:#c9c9c9; color:#444; box-shadow:0 4px 0 #979797;" data-i18n="giveUp">Give up</button>
+</div>
+
+<div id="adOverlay" class="panel hidden">
+  <h1 data-i18n="playingAd">📺 Playing ad...</h1>
+  <p class="big" id="adCount">3</p>
+  <p data-i18n="adPlaceholder">(Ad SDK will be integrated here)</p>
+</div>
+
+<div id="overPanel" class="panel hidden">
+  <h1 data-i18n="gameOver">Game Over</h1>
+  <p class="big"><span data-i18n="score">Score</span>: <span id="finalScore">0</span></p>
+  <p style="font-size:22px"><span data-i18n="starsPlus">⭐ Stars +</span><span id="earnedStars">0</span></p>
+  <p id="unlockMsg" style="font-size:20px; color:#9be89b; font-weight:700"></p>
+  <p><span data-i18n="best">Best</span>: <span id="bestScore">0</span></p>
+  <button class="btn" id="retryBtn" data-i18n="retry">Retry</button>
+  <button class="btn" id="lbBtn" style="background:#b388ff; color:#fff; box-shadow:0 4px 0 #7c4dff;" data-i18n="leaderboard">🏆 Leaderboard</button>
+  <button class="btn secondary" id="menuBtn" data-i18n="menu">Menu</button>
+</div>
+
+<div id="shopPanel" class="panel hidden">
+  <h1 data-i18n="shop">⭐ Shop</h1>
+  <div class="wallet"><span data-i18n="owned">Owned</span>: ⭐ <span id="walletShop">0</span></div>
+  <div id="shopScroll"></div>
+  <button class="btn secondary" id="shopBackBtn" data-i18n="backToMenu">Back</button>
+</div>
+
+<script type="module">
+import * as THREE from './three.module.js';   // 자체 호스팅 (CDN 장애·차단과 무관하게 항상 로드)
+
+// ---------- 저장 데이터 ----------
+const DEFAULT_SAVE = {
+  wallet: 0,
+  owned: ['bird-chick', 'map-day', 'pillar-marble', 'bg-ruin', 'pane-clear', 'forest-oak'],
+  equipped: { bird: 'bird-chick', map: 'map-day', pillar: 'pillar-marble', glassBg: 'bg-ruin', glassPane: 'pane-clear', forestStyle: 'forest-oak' },
+  birdColor: {},         // 종류별로 고른 색상 기억
+  mode: 'forest',        // forest | temple | glass | backrooms
+  bestMode: {},          // 모드별 최고 점수
+  unlockedModes: ['forest'],   // 별로 구매한 맵
+};
+let save;
+try { save = { ...DEFAULT_SAVE, ...JSON.parse(localStorage.getItem('flappy3d-save')) }; }
+catch { save = { ...DEFAULT_SAVE }; }
+const persist = () => localStorage.setItem('flappy3d-save', JSON.stringify(save));
+
+// ---------- 다국어 (i18n) — 영어 기본, 설정에서 전환 ----------
+const LANGS = [
+  ['en', 'English'], ['ko', '한국어'], ['ja', '日本語'], ['zh', '中文'],
+  ['es', 'Español'], ['pt', 'Português'], ['fr', 'Français'], ['de', 'Deutsch'],
+  ['ru', 'Русский'], ['it', 'Italiano'], ['id', 'Bahasa Indonesia'],
+  ['vi', 'Tiếng Việt'], ['th', 'ภาษาไทย'], ['tr', 'Türkçe'], ['hi', 'हिन्दी'],
+];
+let lang = localStorage.getItem('flappy3d-lang') || 'en';
+if (!LANGS.some(l => l[0] === lang)) lang = 'en';
+
+// 이름 사전 (언어별 블록). 각 언어: id → 이름
+const NAME_KEYS = [
+  'bird-chick','bird-sparrow','bird-swallow','bird-owl','bird-eagle','natural','blue','red','mint',
+  'forest-oak','forest-pine','forest-cherry','forest-maple','forest-ginkgo','forest-snow',
+  'map-day','map-sunset','map-night','map-space','pillar-marble','pillar-bronze','pillar-obsidian','pillar-gold',
+  'bg-ruin','bg-dawn','bg-dusk','bg-winter','bg-nightcity','bg-storm','bg-dynamic',
+  'pane-clear','pane-amber','pane-frost','pane-neon','pane-stained','forest','temple','glass','backrooms','soon',
+];
+const mkNames = arr => Object.fromEntries(NAME_KEYS.map((k, i) => [k, arr[i]]));
+const NAMES = {
+  en: mkNames(['Chick','Sparrow','Swallow','Owl','Eagle','Default','Blue','Red','Mint','Oak','Pine','Cherry','Maple','Ginkgo','Snowy','Clear Sky','Sunset','Midnight','Space','Marble','Bronze','Obsidian','Gold','Ruins','Dawn','Dusk','Winter','Night City','Storm','🔄 Dynamic','Clear Glass','Amber Glass','Frosted Glass','Neon Glass','Stained Glass','Forest','Temple','Glass','Backrooms','Coming Soon']),
+  ko: mkNames(['병아리','참새','제비','부엉이','독수리','기본','파랑','빨강','민트','참나무','소나무','벚꽃나무','단풍나무','은행나무','눈꽃나무','맑은 하늘','노을','한밤중','우주','대리석','청동','흑요석','황금','폐건물','새벽','저녁노을','겨울','한밤 도시','폭풍우','🔄 다이나믹','맑은 유리','호박 유리','서리 유리','네온 유리','스테인드글라스','숲','신전','유리창','백룸','준비중']),
+  ja: mkNames(['ヒヨコ','スズメ','ツバメ','フクロウ','ワシ','標準','青','赤','ミント','オーク','松','桜','カエデ','イチョウ','雪化粧','晴れ空','夕焼け','真夜中','宇宙','大理石','ブロンズ','黒曜石','ゴールド','廃墟','夜明け','夕暮れ','冬','夜の街','嵐','🔄 ダイナミック','クリアガラス','琥珀ガラス','曇りガラス','ネオンガラス','ステンドグラス','森','神殿','ガラス','バックルーム','近日公開']),
+  zh: mkNames(['小鸡','麻雀','燕子','猫头鹰','老鹰','默认','蓝色','红色','薄荷','橡树','松树','樱花','枫树','银杏','雪松','晴空','日落','午夜','太空','大理石','青铜','黑曜石','黄金','废墟','黎明','黄昏','冬季','夜之城','暴风雨','🔄 动态','透明玻璃','琥珀玻璃','磨砂玻璃','霓虹玻璃','彩绘玻璃','森林','神殿','玻璃','后室','即将推出']),
+  es: mkNames(['Pollito','Gorrión','Golondrina','Búho','Águila','Normal','Azul','Rojo','Menta','Roble','Pino','Cerezo','Arce','Ginkgo','Nevado','Cielo Claro','Atardecer','Medianoche','Espacio','Mármol','Bronce','Obsidiana','Oro','Ruinas','Amanecer','Ocaso','Invierno','Ciudad Nocturna','Tormenta','🔄 Dinámico','Vidrio Claro','Vidrio Ámbar','Vidrio Esmerilado','Vidrio Neón','Vidriera','Bosque','Templo','Cristal','Backrooms','Próximamente']),
+  pt: mkNames(['Pintinho','Pardal','Andorinha','Coruja','Águia','Padrão','Azul','Vermelho','Menta','Carvalho','Pinheiro','Cerejeira','Bordo','Ginkgo','Nevado','Céu Limpo','Pôr do Sol','Meia-noite','Espaço','Mármore','Bronze','Obsidiana','Ouro','Ruínas','Amanhecer','Anoitecer','Inverno','Cidade Noturna','Tempestade','🔄 Dinâmico','Vidro Claro','Vidro Âmbar','Vidro Fosco','Vidro Neon','Vitral','Floresta','Templo','Vidro','Backrooms','Em Breve']),
+  fr: mkNames(['Poussin','Moineau','Hirondelle','Hibou','Aigle','Défaut','Bleu','Rouge','Menthe','Chêne','Pin','Cerisier','Érable','Ginkgo','Enneigé','Ciel Clair','Coucher','Minuit','Espace','Marbre','Bronze','Obsidienne','Or','Ruines','Aube','Crépuscule','Hiver','Ville Nocturne','Tempête','🔄 Dynamique','Verre Clair','Verre Ambré','Verre Dépoli','Verre Néon','Vitrail','Forêt','Temple','Verre','Backrooms','Bientôt']),
+  de: mkNames(['Küken','Spatz','Schwalbe','Eule','Adler','Standard','Blau','Rot','Minze','Eiche','Kiefer','Kirsche','Ahorn','Ginkgo','Verschneit','Klarer Himmel','Sonnenuntergang','Mitternacht','Weltraum','Marmor','Bronze','Obsidian','Gold','Ruinen','Morgenrot','Dämmerung','Winter','Nachtstadt','Sturm','🔄 Dynamisch','Klarglas','Bernsteinglas','Milchglas','Neonglas','Buntglas','Wald','Tempel','Glas','Backrooms','Demnächst']),
+  ru: mkNames(['Цыплёнок','Воробей','Ласточка','Сова','Орёл','Обычный','Синий','Красный','Мята','Дуб','Сосна','Сакура','Клён','Гинкго','Снежный','Ясное небо','Закат','Полночь','Космос','Мрамор','Бронза','Обсидиан','Золото','Руины','Рассвет','Сумерки','Зима','Ночной город','Буря','🔄 Динамика','Чистое стекло','Янтарное стекло','Матовое стекло','Неон','Витраж','Лес','Храм','Стекло','Бэкрумс','Скоро']),
+  it: mkNames(['Pulcino','Passero','Rondine','Gufo','Aquila','Predefinito','Blu','Rosso','Menta','Quercia','Pino','Ciliegio','Acero','Ginkgo','Innevato','Cielo Sereno','Tramonto','Mezzanotte','Spazio','Marmo','Bronzo','Ossidiana','Oro','Rovine','Alba','Crepuscolo','Inverno','Città Notturna','Tempesta','🔄 Dinamico','Vetro Chiaro','Vetro Ambra','Vetro Smerigliato','Vetro Neon','Vetrata','Foresta','Tempio','Vetro','Backrooms','Prossimamente']),
+  id: mkNames(['Anak Ayam','Pipit','Walet','Burung Hantu','Elang','Standar','Biru','Merah','Mint','Ek','Pinus','Sakura','Mapel','Ginkgo','Bersalju','Langit Cerah','Senja','Tengah Malam','Luar Angkasa','Marmer','Perunggu','Obsidian','Emas','Reruntuhan','Fajar','Petang','Musim Dingin','Kota Malam','Badai','🔄 Dinamis','Kaca Bening','Kaca Ambar','Kaca Buram','Kaca Neon','Kaca Patri','Hutan','Kuil','Kaca','Backrooms','Segera Hadir']),
+  vi: mkNames(['Gà Con','Chim Sẻ','Chim Én','Cú Mèo','Đại Bàng','Mặc định','Xanh','Đỏ','Bạc hà','Sồi','Thông','Anh Đào','Phong','Bạch Quả','Tuyết','Trời Quang','Hoàng Hôn','Nửa Đêm','Vũ Trụ','Cẩm Thạch','Đồng','Hắc Diện Thạch','Vàng','Tàn Tích','Bình Minh','Chạng Vạng','Mùa Đông','Thành Phố Đêm','Bão','🔄 Động','Kính Trong','Kính Hổ Phách','Kính Mờ','Kính Neon','Kính Màu','Rừng','Đền','Kính','Backrooms','Sắp Ra Mắt']),
+  th: mkNames(['ลูกไก่','นกกระจอก','นกนางแอ่น','นกฮูก','นกอินทรี','มาตรฐาน','น้ำเงิน','แดง','มิ้นต์','โอ๊ก','สน','ซากุระ','เมเปิล','แปะก๊วย','หิมะ','ท้องฟ้าใส','พระอาทิตย์ตก','เที่ยงคืน','อวกาศ','หินอ่อน','ทองสัมฤทธิ์','หินออบซิเดียน','ทองคำ','ซากปรักหักพัง','รุ่งอรุณ','สนธยา','ฤดูหนาว','เมืองยามค่ำ','พายุ','🔄 ไดนามิก','กระจกใส','กระจกอำพัน','กระจกฝ้า','กระจกนีออน','กระจกสี','ป่า','วิหาร','กระจก','แบ็กรูม','เร็วๆ นี้']),
+  tr: mkNames(['Civciv','Serçe','Kırlangıç','Baykuş','Kartal','Varsayılan','Mavi','Kırmızı','Nane','Meşe','Çam','Kiraz','Akçaağaç','Ginkgo','Karlı','Açık Gökyüzü','Gün Batımı','Gece Yarısı','Uzay','Mermer','Bronz','Obsidyen','Altın','Harabeler','Şafak','Alacakaranlık','Kış','Gece Şehri','Fırtına','🔄 Dinamik','Şeffaf Cam','Kehribar Cam','Buzlu Cam','Neon Cam','Vitray','Orman','Tapınak','Cam','Backrooms','Yakında']),
+  hi: mkNames(['चूजा','गौरैया','अबाबील','उल्लू','चील','डिफ़ॉल्ट','नीला','लाल','पुदीना','ओक','चीड़','चेरी','मेपल','गिंग्को','बर्फीला','साफ़ आसमान','सूर्यास्त','आधी रात','अंतरिक्ष','संगमरमर','कांस्य','ओब्सीडियन','सोना','खंडहर','भोर','सांझ','सर्दी','रात का शहर','तूफ़ान','🔄 डायनामिक','साफ़ कांच','अंबर कांच','धुंधला कांच','नियॉन कांच','रंगीन कांच','जंगल','मंदिर','कांच','बैकरूम्स','जल्द आ रहा']),
+};
+const nm = id => ((NAMES[lang] || NAMES.en)[id]) ?? NAMES.en[id] ?? id;
+
+// 스킬 이름/설명 (언어별 블록). 순서: chick, sparrow, swallow, owl, eagle → [이름, 설명]
+const SKILL_KEYS = ['chick', 'sparrow', 'swallow', 'owl', 'eagle'];
+const mkSkills = arr => Object.fromEntries(SKILL_KEYS.map((k, i) => [k, arr[i]]));
+const SKILL_T = {
+  en: mkSkills([['Eggshell Shield','Block 1 hit (3s)'],['Shrink','Shrink for 3s'],['Star Magnet','Pull stars (4s)'],['Slow Time','Slow world (3s)'],['Royal Blast','Clear 2 gates ahead']]),
+  ko: mkSkills([['알껍질 보호막','3초간 충돌 1회 무효'],['콩알 변신','3초간 작아짐'],['날쌘 사냥','4초간 별을 끌어당김'],['찰나의 눈','3초간 세상이 느려짐'],['제왕의 위엄','앞 장애물 2칸 제거']]),
+  ja: mkSkills([['卵の殻シールド','1回の衝突を無効(3秒)'],['縮小','3秒間小さくなる'],['スターマグネット','星を引き寄せる(4秒)'],['スロータイム','世界が遅くなる(3秒)'],['王者の一撃','前方2つの障害を消す']]),
+  zh: mkSkills([['蛋壳护盾','抵挡1次撞击(3秒)'],['缩小','缩小3秒'],['星星磁铁','吸引星星(4秒)'],['时间减速','世界变慢(3秒)'],['王者冲击','清除前方2道关卡']]),
+  es: mkSkills([['Escudo de Cáscara','Bloquea 1 golpe (3s)'],['Encoger','Encoge 3s'],['Imán de Estrellas','Atrae estrellas (4s)'],['Ralentizar','Ralentiza todo (3s)'],['Golpe Real','Elimina 2 obstáculos']]),
+  pt: mkSkills([['Escudo de Casca','Bloqueia 1 golpe (3s)'],['Encolher','Encolhe 3s'],['Ímã de Estrelas','Atrai estrelas (4s)'],['Câmera Lenta','Desacelera tudo (3s)'],['Golpe Real','Remove 2 obstáculos']]),
+  fr: mkSkills([['Bouclier Coquille','Bloque 1 coup (3s)'],['Rétrécir','Rétrécit 3s'],['Aimant à Étoiles','Attire les étoiles (4s)'],['Ralenti','Ralentit tout (3s)'],['Frappe Royale','Efface 2 obstacles']]),
+  de: mkSkills([['Eierschalen-Schild','Blockt 1 Treffer (3s)'],['Schrumpfen','Schrumpft 3s'],['Sternmagnet','Zieht Sterne an (4s)'],['Zeitlupe','Verlangsamt alles (3s)'],['Königsschlag','Entfernt 2 Hindernisse']]),
+  ru: mkSkills([['Щит из скорлупы','Блок 1 удара (3с)'],['Уменьшение','Уменьшение 3с'],['Магнит звёзд','Притягивает звёзды (4с)'],['Замедление','Замедляет мир (3с)'],['Королевский удар','Убирает 2 преграды']]),
+  it: mkSkills([['Scudo di Guscio','Blocca 1 colpo (3s)'],['Rimpicciolisci','Rimpicciolisce 3s'],['Magnete Stelle','Attira stelle (4s)'],['Rallenta','Rallenta tutto (3s)'],['Colpo Reale','Elimina 2 ostacoli']]),
+  id: mkSkills([['Perisai Cangkang','Tahan 1 tabrakan (3d)'],['Mengecil','Mengecil 3 detik'],['Magnet Bintang','Tarik bintang (4d)'],['Waktu Lambat','Dunia melambat (3d)'],['Hantaman Raja','Hapus 2 rintangan']]),
+  vi: mkSkills([['Khiên Vỏ Trứng','Chặn 1 va chạm (3 giây)'],['Thu Nhỏ','Thu nhỏ 3 giây'],['Nam Châm Sao','Hút sao (4 giây)'],['Thời Gian Chậm','Thế giới chậm lại (3 giây)'],['Đòn Vương Giả','Xóa 2 chướng ngại']]),
+  th: mkSkills([['โล่เปลือกไข่','กัน 1 ครั้ง (3 วิ)'],['ย่อตัว','ย่อตัว 3 วินาที'],['แม่เหล็กดาว','ดูดดาว (4 วิ)'],['เวลาช้าลง','โลกช้าลง (3 วิ)'],['หมัดราชา','ล้าง 2 ด่านข้างหน้า']]),
+  tr: mkSkills([['Yumurta Kabuğu Kalkanı','1 çarpışmayı engeller (3s)'],['Küçül','3 saniye küçül'],['Yıldız Mıknatısı','Yıldızları çeker (4s)'],['Zaman Yavaşlat','Dünyayı yavaşlatır (3s)'],['Kraliyet Darbesi','2 engeli temizler']]),
+  hi: mkSkills([['अंडे का कवच','1 टक्कर रोके (3से)'],['सिकुड़न','3 सेकंड छोटा'],['तारा चुंबक','तारे खींचे (4से)'],['समय धीमा','दुनिया धीमी (3से)'],['राजसी प्रहार','आगे 2 बाधाएं हटाए']]),
+};
+const skillName = sp => ((SKILL_T[lang] || SKILL_T.en)[sp] || SKILL_T.en[sp])[0];
+const skillDesc = sp => ((SKILL_T[lang] || SKILL_T.en)[sp] || SKILL_T.en[sp])[1];
+
+// UI 문자열 (언어별 블록). {0},{1}... 은 자리표시자
+const UI = {
+  en: {
+    settings: '⚙️ Settings', title: 'Wing Dodge 3D', play: 'Play', shop: '⭐ Shop',
+    sound: '🔊 Sound', vibration: '📳 Vibration', lowGfx: '🪶 Low graphics', language: '🌐 Language',
+    controls: '🎮 Controls', ctrlButtons: 'Buttons', ctrlSplit: 'Split touch', ctrlTilt: 'Tilt',
+    rotateMsg: 'Rotate your phone to landscape', playPortrait: 'Play in portrait',
+    help: '❓ Help', support: '📮 Support', resetData: '🗑 Reset data', close: 'Close',
+    reviveQ: '💫 Revive?', score: 'Score', giveUp: 'Give up', playingAd: '📺 Playing ad...',
+    adPlaceholder: '(Ad SDK will be integrated here)', gameOver: 'Game Over',
+    starsPlus: '⭐ Stars +', best: 'Best', retry: 'Retry', leaderboard: '🏆 Leaderboard',
+    menu: 'Menu', owned: 'Owned', backToMenu: 'Back',
+    secBird: '🐤 Birds (tap card for colors)', secForestTree: '🌲 Forest · Trees',
+    secTempleSky: '🏛️ Temple · Sky', secTemplePillar: '🏛️ Temple · Pillars',
+    secGlassBg: '🪟 Glass · Backdrop', secGlassPane: '🪟 Glass · Pane',
+    on: 'On', off: 'Off', equipped: 'Equipped', equip: 'Equip',
+    locked: 'Locked 🔒', comingSoon: 'Coming soon', newMapsSoon: 'New maps coming soon!',
+    unlockMode: '🔓 Unlock (⭐{0})', buyPrice: '⭐{0} Buy', starRevive: '⭐ {0} to revive (have {1})',
+    adRevive: '📺 Watch ad to revive', freeRevive: '💫 Free revive (1x)',
+    hintNeedScore: '🔒 Reach {1} in {0} first (best {2})', hintNeedStars: '⭐ Not enough! Need ⭐{0}',
+    hintConfirm: '🔓 Tap again to unlock', unlockConfirmBtn: 'Unlock now? (⭐{0})', unlockDone: '🔓 {0} unlocked!',
+    mapStatusLocked: '🔒 {0} {1}pt (best {2}) + ⭐{3}', resetConfirm: 'Tap again to reset', langTitle: '🌐 Language',
+    helpBody: '🐤 <b>Controls</b><br>Tap right side / Space : flap (up)<br>Slide left side (or tilt phone) / arrows : move<br>✨ button / Shift·S : bird skill<br><br>⭐ <b>Stars</b> : collect stars to buy birds & cosmetics and unlock maps<br><br>💫 <b>Revive</b> : revive with stars when you die (cost doubles each use)<br><br>🗺️ <b>Maps</b> : swipe on the title screen to choose · unlock with prev-map score + stars',
+  },
+  ko: {
+    settings: '⚙️ 설정', title: 'Wing Dodge 3D', play: '게임 시작', shop: '⭐ 상점',
+    sound: '🔊 소리', vibration: '📳 진동', lowGfx: '🪶 저사양 모드', language: '🌐 언어',
+    controls: '🎮 조작', ctrlButtons: '버튼', ctrlSplit: '좌우 분할', ctrlTilt: '기울기',
+    rotateMsg: '폰을 가로로 돌려주세요', playPortrait: '세로로 하기',
+    help: '❓ 도움말', support: '📮 고객센터', resetData: '🗑 데이터 초기화', close: '닫기',
+    reviveQ: '💫 부활할래요?', score: '점수', giveUp: '포기하기', playingAd: '📺 광고 재생 중...',
+    adPlaceholder: '(여기에 실제 광고 SDK가 연동될 자리예요)', gameOver: '게임 오버',
+    starsPlus: '⭐ 별 +', best: '최고 기록', retry: '다시 하기', leaderboard: '🏆 순위 보기',
+    menu: '메인 메뉴', owned: '보유', backToMenu: '메인으로',
+    secBird: '🐤 새 (카드에서 색상도 선택)', secForestTree: '🌲 숲 모드 · 나무',
+    secTempleSky: '🏛️ 신전 모드 · 하늘', secTemplePillar: '🏛️ 신전 모드 · 기둥',
+    secGlassBg: '🪟 유리창 모드 · 배경', secGlassPane: '🪟 유리창 모드 · 유리',
+    on: '켜짐', off: '꺼짐', equipped: '장착됨', equip: '장착',
+    locked: '잠김 🔒', comingSoon: '준비중', newMapsSoon: '새로운 맵이 찾아올 예정!',
+    unlockMode: '🔓 잠금 해제 (⭐{0})', buyPrice: '⭐{0} 구매', starRevive: '⭐ {0} 쓰고 부활 (보유 {1})',
+    adRevive: '📺 광고 보고 부활', freeRevive: '💫 무료 부활 (1회)',
+    hintNeedScore: '🔒 먼저 {0}에서 {1}점을 달성하세요 (현재 최고 {2}점)', hintNeedStars: '⭐ 부족! 해금엔 ⭐{0} 필요',
+    hintConfirm: '🔓 한 번 더 누르면 해금됩니다', unlockConfirmBtn: '정말 해금할까요? (⭐{0})', unlockDone: '🔓 {0} 해금 완료!',
+    mapStatusLocked: '🔒 {0} {1}점 (최고 {2}점) + ⭐{3}', resetConfirm: '정말 초기화할까요? (한 번 더 누르면 실행)', langTitle: '🌐 언어',
+    helpBody: '🐤 <b>조작</b><br>오른쪽 화면 탭 / 스페이스 : 점프 (위로)<br>왼쪽 화면 밀기 (또는 폰 기울이기) / 화살표 : 이동<br>✨ 버튼 / Shift·S : 새 고유 스킬<br><br>⭐ <b>별</b> : 코스의 별을 모아 상점에서 새·꾸미기를 사고, 새 맵을 해금하세요<br><br>💫 <b>부활</b> : 죽으면 별로 부활할 수 있어요 (쓸수록 비용 2배)<br><br>🗺️ <b>맵</b> : 첫 화면에서 좌우로 넘겨 선택 · 이전 맵 점수 + 별로 해금',
+  },
+  ja: {
+    settings: '⚙️ 設定', title: 'Wing Dodge 3D', play: 'スタート', shop: '⭐ ショップ',
+    sound: '🔊 サウンド', vibration: '📳 振動', lowGfx: '🪶 軽量モード', language: '🌐 言語',
+    help: '❓ ヘルプ', support: '📮 サポート', resetData: '🗑 データ初期化', close: '閉じる',
+    reviveQ: '💫 復活する？', score: 'スコア', giveUp: 'あきらめる', playingAd: '📺 広告再生中...',
+    adPlaceholder: '(ここに広告SDKが入ります)', gameOver: 'ゲームオーバー',
+    starsPlus: '⭐ スター +', best: 'ベスト', retry: 'リトライ', leaderboard: '🏆 ランキング',
+    menu: 'メニュー', owned: '所持', backToMenu: '戻る',
+    secBird: '🐤 鳥（カードで色も選択）', secForestTree: '🌲 森 · 木',
+    secTempleSky: '🏛️ 神殿 · 空', secTemplePillar: '🏛️ 神殿 · 柱',
+    secGlassBg: '🪟 ガラス · 背景', secGlassPane: '🪟 ガラス · ガラス',
+    on: 'オン', off: 'オフ', equipped: '装備中', equip: '装備',
+    locked: 'ロック 🔒', comingSoon: '近日公開', newMapsSoon: '新しいマップが登場予定！',
+    unlockMode: '🔓 解除 (⭐{0})', buyPrice: '⭐{0} 購入', starRevive: '⭐ {0} で復活（所持 {1}）',
+    adRevive: '📺 広告を見て復活', freeRevive: '💫 無料復活（1回）',
+    hintNeedScore: '🔒 まず{0}で{1}点を達成してください（最高 {2}点）', hintNeedStars: '⭐ 不足！解除に⭐{0}が必要',
+    hintConfirm: '🔓 もう一度押すと解除', unlockConfirmBtn: '本当に解除？ (⭐{0})', unlockDone: '🔓 {0} 解除完了！',
+    mapStatusLocked: '🔒 {0} {1}点（最高 {2}点）+ ⭐{3}', resetConfirm: 'もう一度押すと初期化', langTitle: '🌐 言語',
+    helpBody: '🐤 <b>操作</b><br>タップ / スペース : 羽ばたく（上へ）<br>◀ ▶ ボタン / 矢印キー : 左右移動<br>✨ ボタン / Shift·S : 鳥の固有スキル<br><br>⭐ <b>スター</b> : スターを集めて鳥や装飾を買い、マップを解除<br><br>💫 <b>復活</b> : 死んだらスターで復活（使うたび2倍）<br><br>🗺️ <b>マップ</b> : タイトルで左右にスワイプして選択 · 前マップのスコア+スターで解除',
+  },
+  zh: {
+    settings: '⚙️ 设置', title: 'Wing Dodge 3D', play: '开始', shop: '⭐ 商店',
+    sound: '🔊 声音', vibration: '📳 振动', lowGfx: '🪶 低画质', language: '🌐 语言',
+    help: '❓ 帮助', support: '📮 客服', resetData: '🗑 重置数据', close: '关闭',
+    reviveQ: '💫 复活吗？', score: '分数', giveUp: '放弃', playingAd: '📺 广告播放中...',
+    adPlaceholder: '(此处将接入广告SDK)', gameOver: '游戏结束',
+    starsPlus: '⭐ 星星 +', best: '最高', retry: '重试', leaderboard: '🏆 排行榜',
+    menu: '主菜单', owned: '拥有', backToMenu: '返回',
+    secBird: '🐤 小鸟（点卡片选颜色）', secForestTree: '🌲 森林 · 树木',
+    secTempleSky: '🏛️ 神殿 · 天空', secTemplePillar: '🏛️ 神殿 · 柱子',
+    secGlassBg: '🪟 玻璃 · 背景', secGlassPane: '🪟 玻璃 · 玻璃',
+    on: '开', off: '关', equipped: '已装备', equip: '装备',
+    locked: '锁定 🔒', comingSoon: '即将推出', newMapsSoon: '新地图即将上线！',
+    unlockMode: '🔓 解锁 (⭐{0})', buyPrice: '⭐{0} 购买', starRevive: '⭐ {0} 复活（拥有 {1}）',
+    adRevive: '📺 看广告复活', freeRevive: '💫 免费复活（1次）',
+    hintNeedScore: '🔒 请先在{0}达到{1}分（最高 {2}分）', hintNeedStars: '⭐ 不足！解锁需要⭐{0}',
+    hintConfirm: '🔓 再按一次解锁', unlockConfirmBtn: '确定解锁？ (⭐{0})', unlockDone: '🔓 {0} 已解锁！',
+    mapStatusLocked: '🔒 {0} {1}分（最高 {2}分）+ ⭐{3}', resetConfirm: '再按一次以重置', langTitle: '🌐 语言',
+    helpBody: '🐤 <b>操作</b><br>点击 / 空格 : 拍翅（向上跳）<br>◀ ▶ 按钮 / 方向键 : 左右移动<br>✨ 按钮 / Shift·S : 小鸟专属技能<br><br>⭐ <b>星星</b> : 收集星星在商店购买小鸟和装饰，解锁地图<br><br>💫 <b>复活</b> : 死亡后可用星星复活（每次翻倍）<br><br>🗺️ <b>地图</b> : 在标题画面左右滑动选择 · 用上一地图分数+星星解锁',
+  },
+  es: {
+    settings: '⚙️ Ajustes', title: 'Wing Dodge 3D', play: 'Jugar', shop: '⭐ Tienda',
+    sound: '🔊 Sonido', vibration: '📳 Vibración', lowGfx: '🪶 Gráficos bajos', language: '🌐 Idioma',
+    help: '❓ Ayuda', support: '📮 Soporte', resetData: '🗑 Borrar datos', close: 'Cerrar',
+    reviveQ: '💫 ¿Revivir?', score: 'Puntos', giveUp: 'Rendirse', playingAd: '📺 Reproduciendo anuncio...',
+    adPlaceholder: '(Aquí irá el SDK de anuncios)', gameOver: 'Fin del juego',
+    starsPlus: '⭐ Estrellas +', best: 'Mejor', retry: 'Reintentar', leaderboard: '🏆 Ranking',
+    menu: 'Menú', owned: 'Tienes', backToMenu: 'Volver',
+    secBird: '🐤 Aves (toca para colores)', secForestTree: '🌲 Bosque · Árboles',
+    secTempleSky: '🏛️ Templo · Cielo', secTemplePillar: '🏛️ Templo · Columnas',
+    secGlassBg: '🪟 Cristal · Fondo', secGlassPane: '🪟 Cristal · Vidrio',
+    on: 'Sí', off: 'No', equipped: 'Equipado', equip: 'Equipar',
+    locked: 'Bloqueado 🔒', comingSoon: 'Próximamente', newMapsSoon: '¡Nuevos mapas pronto!',
+    unlockMode: '🔓 Desbloquear (⭐{0})', buyPrice: '⭐{0} Comprar', starRevive: '⭐ {0} para revivir (tienes {1})',
+    adRevive: '📺 Ver anuncio y revivir', freeRevive: '💫 Revivir gratis (1x)',
+    hintNeedScore: '🔒 Alcanza {1} en {0} primero (mejor {2})', hintNeedStars: '⭐ ¡Insuficiente! Necesitas ⭐{0}',
+    hintConfirm: '🔓 Toca otra vez para desbloquear', unlockConfirmBtn: '¿Desbloquear? (⭐{0})', unlockDone: '🔓 ¡{0} desbloqueado!',
+    mapStatusLocked: '🔒 {0} {1}pts (mejor {2}) + ⭐{3}', resetConfirm: 'Toca otra vez para borrar', langTitle: '🌐 Idioma',
+    helpBody: '🐤 <b>Controles</b><br>Toca / Espacio : aletea (salta)<br>◀ ▶ botones / flechas : mover<br>✨ botón / Shift·S : habilidad del ave<br><br>⭐ <b>Estrellas</b> : reúne estrellas para comprar aves y adornos y desbloquear mapas<br><br>💫 <b>Revivir</b> : revive con estrellas al morir (el costo se duplica)<br><br>🗺️ <b>Mapas</b> : desliza en la pantalla de título · desbloquea con puntos del mapa previo + estrellas',
+  },
+  pt: {
+    settings: '⚙️ Config', title: 'Wing Dodge 3D', play: 'Jogar', shop: '⭐ Loja',
+    sound: '🔊 Som', vibration: '📳 Vibração', lowGfx: '🪶 Gráficos baixos', language: '🌐 Idioma',
+    help: '❓ Ajuda', support: '📮 Suporte', resetData: '🗑 Apagar dados', close: 'Fechar',
+    reviveQ: '💫 Reviver?', score: 'Pontos', giveUp: 'Desistir', playingAd: '📺 Exibindo anúncio...',
+    adPlaceholder: '(SDK de anúncios ficará aqui)', gameOver: 'Fim de Jogo',
+    starsPlus: '⭐ Estrelas +', best: 'Recorde', retry: 'Tentar de novo', leaderboard: '🏆 Ranking',
+    menu: 'Menu', owned: 'Você tem', backToMenu: 'Voltar',
+    secBird: '🐤 Aves (toque para cores)', secForestTree: '🌲 Floresta · Árvores',
+    secTempleSky: '🏛️ Templo · Céu', secTemplePillar: '🏛️ Templo · Colunas',
+    secGlassBg: '🪟 Vidro · Fundo', secGlassPane: '🪟 Vidro · Vidraça',
+    on: 'Lig', off: 'Des', equipped: 'Equipado', equip: 'Equipar',
+    locked: 'Bloqueado 🔒', comingSoon: 'Em breve', newMapsSoon: 'Novos mapas em breve!',
+    unlockMode: '🔓 Desbloquear (⭐{0})', buyPrice: '⭐{0} Comprar', starRevive: '⭐ {0} para reviver (tem {1})',
+    adRevive: '📺 Ver anúncio e reviver', freeRevive: '💫 Reviver grátis (1x)',
+    hintNeedScore: '🔒 Alcance {1} em {0} primeiro (recorde {2})', hintNeedStars: '⭐ Insuficiente! Precisa ⭐{0}',
+    hintConfirm: '🔓 Toque de novo para desbloquear', unlockConfirmBtn: 'Desbloquear? (⭐{0})', unlockDone: '🔓 {0} desbloqueado!',
+    mapStatusLocked: '🔒 {0} {1}pts (recorde {2}) + ⭐{3}', resetConfirm: 'Toque de novo para apagar', langTitle: '🌐 Idioma',
+    helpBody: '🐤 <b>Controles</b><br>Toque / Espaço : bater asas (pular)<br>◀ ▶ botões / setas : mover<br>✨ botão / Shift·S : habilidade da ave<br><br>⭐ <b>Estrelas</b> : junte estrelas para comprar aves e enfeites e desbloquear mapas<br><br>💫 <b>Reviver</b> : reviva com estrelas ao morrer (custo dobra a cada uso)<br><br>🗺️ <b>Mapas</b> : deslize na tela inicial · desbloqueie com pontos do mapa anterior + estrelas',
+  },
+  fr: {
+    settings: '⚙️ Réglages', title: 'Wing Dodge 3D', play: 'Jouer', shop: '⭐ Boutique',
+    sound: '🔊 Son', vibration: '📳 Vibration', lowGfx: '🪶 Graphismes bas', language: '🌐 Langue',
+    help: '❓ Aide', support: '📮 Support', resetData: '🗑 Réinitialiser', close: 'Fermer',
+    reviveQ: '💫 Revivre ?', score: 'Score', giveUp: 'Abandonner', playingAd: '📺 Publicité en cours...',
+    adPlaceholder: '(Le SDK pub ira ici)', gameOver: 'Partie terminée',
+    starsPlus: '⭐ Étoiles +', best: 'Record', retry: 'Réessayer', leaderboard: '🏆 Classement',
+    menu: 'Menu', owned: 'Possédé', backToMenu: 'Retour',
+    secBird: '🐤 Oiseaux (touche pour couleurs)', secForestTree: '🌲 Forêt · Arbres',
+    secTempleSky: '🏛️ Temple · Ciel', secTemplePillar: '🏛️ Temple · Colonnes',
+    secGlassBg: '🪟 Verre · Décor', secGlassPane: '🪟 Verre · Vitre',
+    on: 'Oui', off: 'Non', equipped: 'Équipé', equip: 'Équiper',
+    locked: 'Verrouillé 🔒', comingSoon: 'Bientôt', newMapsSoon: 'Nouvelles cartes bientôt !',
+    unlockMode: '🔓 Débloquer (⭐{0})', buyPrice: '⭐{0} Acheter', starRevive: '⭐ {0} pour revivre (vous avez {1})',
+    adRevive: '📺 Pub pour revivre', freeRevive: '💫 Revivre gratuit (1x)',
+    hintNeedScore: '🔒 Atteignez {1} dans {0} d\'abord (record {2})', hintNeedStars: '⭐ Insuffisant ! Besoin ⭐{0}',
+    hintConfirm: '🔓 Touchez encore pour débloquer', unlockConfirmBtn: 'Débloquer ? (⭐{0})', unlockDone: '🔓 {0} débloqué !',
+    mapStatusLocked: '🔒 {0} {1}pts (record {2}) + ⭐{3}', resetConfirm: 'Touchez encore pour réinitialiser', langTitle: '🌐 Langue',
+    helpBody: '🐤 <b>Commandes</b><br>Touche / Espace : battre des ailes (sauter)<br>◀ ▶ boutons / flèches : bouger<br>✨ bouton / Shift·S : compétence de l\'oiseau<br><br>⭐ <b>Étoiles</b> : collectez des étoiles pour acheter oiseaux et décors et débloquer des cartes<br><br>💫 <b>Revivre</b> : revivez avec des étoiles en mourant (coût doublé à chaque fois)<br><br>🗺️ <b>Cartes</b> : glissez sur l\'écran titre · débloquez avec le score de la carte précédente + étoiles',
+  },
+  de: {
+    settings: '⚙️ Einstellungen', title: 'Wing Dodge 3D', play: 'Spielen', shop: '⭐ Shop',
+    sound: '🔊 Ton', vibration: '📳 Vibration', lowGfx: '🪶 Niedrige Grafik', language: '🌐 Sprache',
+    help: '❓ Hilfe', support: '📮 Support', resetData: '🗑 Daten löschen', close: 'Schließen',
+    reviveQ: '💫 Wiederbeleben?', score: 'Punkte', giveUp: 'Aufgeben', playingAd: '📺 Werbung läuft...',
+    adPlaceholder: '(Werbe-SDK kommt hierher)', gameOver: 'Game Over',
+    starsPlus: '⭐ Sterne +', best: 'Bestwert', retry: 'Nochmal', leaderboard: '🏆 Rangliste',
+    menu: 'Menü', owned: 'Besitzt', backToMenu: 'Zurück',
+    secBird: '🐤 Vögel (tippen für Farben)', secForestTree: '🌲 Wald · Bäume',
+    secTempleSky: '🏛️ Tempel · Himmel', secTemplePillar: '🏛️ Tempel · Säulen',
+    secGlassBg: '🪟 Glas · Hintergrund', secGlassPane: '🪟 Glas · Scheibe',
+    on: 'An', off: 'Aus', equipped: 'Ausgerüstet', equip: 'Ausrüsten',
+    locked: 'Gesperrt 🔒', comingSoon: 'Demnächst', newMapsSoon: 'Neue Karten kommen bald!',
+    unlockMode: '🔓 Freischalten (⭐{0})', buyPrice: '⭐{0} Kaufen', starRevive: '⭐ {0} zum Wiederbeleben (hast {1})',
+    adRevive: '📺 Werbung ansehen', freeRevive: '💫 Gratis wiederbeleben (1x)',
+    hintNeedScore: '🔒 Erreiche erst {1} in {0} (Bestwert {2})', hintNeedStars: '⭐ Zu wenig! Braucht ⭐{0}',
+    hintConfirm: '🔓 Nochmal tippen zum Freischalten', unlockConfirmBtn: 'Freischalten? (⭐{0})', unlockDone: '🔓 {0} freigeschaltet!',
+    mapStatusLocked: '🔒 {0} {1}Pkt (Best {2}) + ⭐{3}', resetConfirm: 'Nochmal tippen zum Löschen', langTitle: '🌐 Sprache',
+    helpBody: '🐤 <b>Steuerung</b><br>Tippen / Leertaste : flattern (hoch)<br>◀ ▶ Tasten / Pfeiltasten : bewegen<br>✨ Taste / Shift·S : Vogel-Fähigkeit<br><br>⭐ <b>Sterne</b> : sammle Sterne, um Vögel und Deko zu kaufen und Karten freizuschalten<br><br>💫 <b>Wiederbeleben</b> : bei Tod mit Sternen wiederbeleben (Kosten verdoppeln sich)<br><br>🗺️ <b>Karten</b> : im Titelbild wischen · mit Punkten der Vorkarte + Sternen freischalten',
+  },
+  ru: {
+    settings: '⚙️ Настройки', title: 'Wing Dodge 3D', play: 'Играть', shop: '⭐ Магазин',
+    sound: '🔊 Звук', vibration: '📳 Вибрация', lowGfx: '🪶 Низкая графика', language: '🌐 Язык',
+    help: '❓ Справка', support: '📮 Поддержка', resetData: '🗑 Сбросить данные', close: 'Закрыть',
+    reviveQ: '💫 Возродиться?', score: 'Счёт', giveUp: 'Сдаться', playingAd: '📺 Идёт реклама...',
+    adPlaceholder: '(Здесь будет SDK рекламы)', gameOver: 'Игра окончена',
+    starsPlus: '⭐ Звёзды +', best: 'Рекорд', retry: 'Заново', leaderboard: '🏆 Рейтинг',
+    menu: 'Меню', owned: 'Есть', backToMenu: 'Назад',
+    secBird: '🐤 Птицы (нажми для цветов)', secForestTree: '🌲 Лес · Деревья',
+    secTempleSky: '🏛️ Храм · Небо', secTemplePillar: '🏛️ Храм · Колонны',
+    secGlassBg: '🪟 Стекло · Фон', secGlassPane: '🪟 Стекло · Панель',
+    on: 'Вкл', off: 'Выкл', equipped: 'Надето', equip: 'Надеть',
+    locked: 'Закрыто 🔒', comingSoon: 'Скоро', newMapsSoon: 'Скоро новые карты!',
+    unlockMode: '🔓 Открыть (⭐{0})', buyPrice: '⭐{0} Купить', starRevive: '⭐ {0} для возрождения (есть {1})',
+    adRevive: '📺 Реклама для возрождения', freeRevive: '💫 Бесплатно (1 раз)',
+    hintNeedScore: '🔒 Сначала наберите {1} в {0} (рекорд {2})', hintNeedStars: '⭐ Не хватает! Нужно ⭐{0}',
+    hintConfirm: '🔓 Нажмите ещё раз', unlockConfirmBtn: 'Открыть? (⭐{0})', unlockDone: '🔓 {0} открыто!',
+    mapStatusLocked: '🔒 {0} {1} очк (рекорд {2}) + ⭐{3}', resetConfirm: 'Нажмите ещё раз для сброса', langTitle: '🌐 Язык',
+    helpBody: '🐤 <b>Управление</b><br>Тап / Пробел : взмах (прыжок вверх)<br>◀ ▶ кнопки / стрелки : движение<br>✨ кнопка / Shift·S : навык птицы<br><br>⭐ <b>Звёзды</b> : собирайте звёзды, покупайте птиц и украшения, открывайте карты<br><br>💫 <b>Возрождение</b> : возрождайтесь за звёзды (цена удваивается)<br><br>🗺️ <b>Карты</b> : свайп на титульном экране · открытие за очки прошлой карты + звёзды',
+  },
+  it: {
+    settings: '⚙️ Impostazioni', title: 'Wing Dodge 3D', play: 'Gioca', shop: '⭐ Negozio',
+    sound: '🔊 Suono', vibration: '📳 Vibrazione', lowGfx: '🪶 Grafica bassa', language: '🌐 Lingua',
+    help: '❓ Aiuto', support: '📮 Supporto', resetData: '🗑 Azzera dati', close: 'Chiudi',
+    reviveQ: '💫 Rivivere?', score: 'Punti', giveUp: 'Rinuncia', playingAd: '📺 Annuncio in corso...',
+    adPlaceholder: '(Qui andrà l\'SDK pubblicità)', gameOver: 'Game Over',
+    starsPlus: '⭐ Stelle +', best: 'Record', retry: 'Riprova', leaderboard: '🏆 Classifica',
+    menu: 'Menu', owned: 'Possiedi', backToMenu: 'Indietro',
+    secBird: '🐤 Uccelli (tocca per colori)', secForestTree: '🌲 Foresta · Alberi',
+    secTempleSky: '🏛️ Tempio · Cielo', secTemplePillar: '🏛️ Tempio · Colonne',
+    secGlassBg: '🪟 Vetro · Sfondo', secGlassPane: '🪟 Vetro · Lastra',
+    on: 'Sì', off: 'No', equipped: 'Equipaggiato', equip: 'Equipaggia',
+    locked: 'Bloccato 🔒', comingSoon: 'Prossimamente', newMapsSoon: 'Nuove mappe in arrivo!',
+    unlockMode: '🔓 Sblocca (⭐{0})', buyPrice: '⭐{0} Compra', starRevive: '⭐ {0} per rivivere (hai {1})',
+    adRevive: '📺 Guarda pub e rivivi', freeRevive: '💫 Rivivi gratis (1x)',
+    hintNeedScore: '🔒 Raggiungi {1} in {0} prima (record {2})', hintNeedStars: '⭐ Insufficiente! Servono ⭐{0}',
+    hintConfirm: '🔓 Tocca di nuovo per sbloccare', unlockConfirmBtn: 'Sbloccare? (⭐{0})', unlockDone: '🔓 {0} sbloccato!',
+    mapStatusLocked: '🔒 {0} {1}pt (record {2}) + ⭐{3}', resetConfirm: 'Tocca di nuovo per azzerare', langTitle: '🌐 Lingua',
+    helpBody: '🐤 <b>Comandi</b><br>Tocca / Spazio : sbatti le ali (salta)<br>◀ ▶ pulsanti / frecce : muovi<br>✨ pulsante / Shift·S : abilità dell\'uccello<br><br>⭐ <b>Stelle</b> : raccogli stelle per comprare uccelli e decorazioni e sbloccare mappe<br><br>💫 <b>Rivivere</b> : rivivi con le stelle alla morte (costo raddoppia)<br><br>🗺️ <b>Mappe</b> : scorri nella schermata iniziale · sblocca con il punteggio della mappa precedente + stelle',
+  },
+  id: {
+    settings: '⚙️ Pengaturan', title: 'Wing Dodge 3D', play: 'Main', shop: '⭐ Toko',
+    sound: '🔊 Suara', vibration: '📳 Getar', lowGfx: '🪶 Grafik rendah', language: '🌐 Bahasa',
+    help: '❓ Bantuan', support: '📮 Dukungan', resetData: '🗑 Hapus data', close: 'Tutup',
+    reviveQ: '💫 Bangkit?', score: 'Skor', giveUp: 'Menyerah', playingAd: '📺 Memutar iklan...',
+    adPlaceholder: '(SDK iklan akan di sini)', gameOver: 'Permainan Selesai',
+    starsPlus: '⭐ Bintang +', best: 'Terbaik', retry: 'Ulangi', leaderboard: '🏆 Peringkat',
+    menu: 'Menu', owned: 'Dimiliki', backToMenu: 'Kembali',
+    secBird: '🐤 Burung (ketuk untuk warna)', secForestTree: '🌲 Hutan · Pohon',
+    secTempleSky: '🏛️ Kuil · Langit', secTemplePillar: '🏛️ Kuil · Pilar',
+    secGlassBg: '🪟 Kaca · Latar', secGlassPane: '🪟 Kaca · Panel',
+    on: 'Nyala', off: 'Mati', equipped: 'Dipakai', equip: 'Pakai',
+    locked: 'Terkunci 🔒', comingSoon: 'Segera', newMapsSoon: 'Peta baru segera hadir!',
+    unlockMode: '🔓 Buka (⭐{0})', buyPrice: '⭐{0} Beli', starRevive: '⭐ {0} untuk bangkit (punya {1})',
+    adRevive: '📺 Tonton iklan & bangkit', freeRevive: '💫 Bangkit gratis (1x)',
+    hintNeedScore: '🔒 Capai {1} di {0} dulu (terbaik {2})', hintNeedStars: '⭐ Kurang! Butuh ⭐{0}',
+    hintConfirm: '🔓 Ketuk lagi untuk membuka', unlockConfirmBtn: 'Buka? (⭐{0})', unlockDone: '🔓 {0} terbuka!',
+    mapStatusLocked: '🔒 {0} {1}poin (terbaik {2}) + ⭐{3}', resetConfirm: 'Ketuk lagi untuk hapus', langTitle: '🌐 Bahasa',
+    helpBody: '🐤 <b>Kontrol</b><br>Ketuk / Spasi : kepak (lompat)<br>◀ ▶ tombol / panah : gerak<br>✨ tombol / Shift·S : skill burung<br><br>⭐ <b>Bintang</b> : kumpulkan bintang untuk beli burung & hiasan dan buka peta<br><br>💫 <b>Bangkit</b> : bangkit dengan bintang saat mati (biaya berlipat)<br><br>🗺️ <b>Peta</b> : geser di layar judul · buka dengan skor peta sebelumnya + bintang',
+  },
+  vi: {
+    settings: '⚙️ Cài đặt', title: 'Wing Dodge 3D', play: 'Chơi', shop: '⭐ Cửa hàng',
+    sound: '🔊 Âm thanh', vibration: '📳 Rung', lowGfx: '🪶 Đồ họa thấp', language: '🌐 Ngôn ngữ',
+    help: '❓ Trợ giúp', support: '📮 Hỗ trợ', resetData: '🗑 Xóa dữ liệu', close: 'Đóng',
+    reviveQ: '💫 Hồi sinh?', score: 'Điểm', giveUp: 'Bỏ cuộc', playingAd: '📺 Đang phát quảng cáo...',
+    adPlaceholder: '(SDK quảng cáo sẽ ở đây)', gameOver: 'Kết thúc',
+    starsPlus: '⭐ Sao +', best: 'Kỷ lục', retry: 'Thử lại', leaderboard: '🏆 Bảng xếp hạng',
+    menu: 'Menu', owned: 'Sở hữu', backToMenu: 'Quay lại',
+    secBird: '🐤 Chim (chạm để chọn màu)', secForestTree: '🌲 Rừng · Cây',
+    secTempleSky: '🏛️ Đền · Bầu trời', secTemplePillar: '🏛️ Đền · Cột',
+    secGlassBg: '🪟 Kính · Nền', secGlassPane: '🪟 Kính · Tấm',
+    on: 'Bật', off: 'Tắt', equipped: 'Đang dùng', equip: 'Trang bị',
+    locked: 'Đã khóa 🔒', comingSoon: 'Sắp ra mắt', newMapsSoon: 'Bản đồ mới sắp có!',
+    unlockMode: '🔓 Mở khóa (⭐{0})', buyPrice: '⭐{0} Mua', starRevive: '⭐ {0} để hồi sinh (có {1})',
+    adRevive: '📺 Xem quảng cáo hồi sinh', freeRevive: '💫 Hồi sinh miễn phí (1 lần)',
+    hintNeedScore: '🔒 Đạt {1} ở {0} trước (kỷ lục {2})', hintNeedStars: '⭐ Không đủ! Cần ⭐{0}',
+    hintConfirm: '🔓 Chạm lần nữa để mở khóa', unlockConfirmBtn: 'Mở khóa? (⭐{0})', unlockDone: '🔓 Đã mở {0}!',
+    mapStatusLocked: '🔒 {0} {1}điểm (kỷ lục {2}) + ⭐{3}', resetConfirm: 'Chạm lần nữa để xóa', langTitle: '🌐 Ngôn ngữ',
+    helpBody: '🐤 <b>Điều khiển</b><br>Chạm / Space : vỗ cánh (nhảy lên)<br>◀ ▶ nút / phím mũi tên : di chuyển<br>✨ nút / Shift·S : kỹ năng của chim<br><br>⭐ <b>Sao</b> : thu thập sao để mua chim & trang trí và mở bản đồ<br><br>💫 <b>Hồi sinh</b> : hồi sinh bằng sao khi chết (giá gấp đôi mỗi lần)<br><br>🗺️ <b>Bản đồ</b> : vuốt ở màn hình chính · mở bằng điểm bản đồ trước + sao',
+  },
+  th: {
+    settings: '⚙️ ตั้งค่า', title: 'Wing Dodge 3D', play: 'เล่น', shop: '⭐ ร้านค้า',
+    sound: '🔊 เสียง', vibration: '📳 สั่น', lowGfx: '🪶 กราฟิกต่ำ', language: '🌐 ภาษา',
+    help: '❓ ช่วยเหลือ', support: '📮 ติดต่อ', resetData: '🗑 ล้างข้อมูล', close: 'ปิด',
+    reviveQ: '💫 ฟื้นไหม?', score: 'คะแนน', giveUp: 'ยอมแพ้', playingAd: '📺 กำลังเล่นโฆษณา...',
+    adPlaceholder: '(SDK โฆษณาจะอยู่ตรงนี้)', gameOver: 'เกมโอเวอร์',
+    starsPlus: '⭐ ดาว +', best: 'สูงสุด', retry: 'ลองใหม่', leaderboard: '🏆 อันดับ',
+    menu: 'เมนู', owned: 'มีอยู่', backToMenu: 'กลับ',
+    secBird: '🐤 นก (แตะเพื่อเลือกสี)', secForestTree: '🌲 ป่า · ต้นไม้',
+    secTempleSky: '🏛️ วิหาร · ท้องฟ้า', secTemplePillar: '🏛️ วิหาร · เสา',
+    secGlassBg: '🪟 กระจก · ฉากหลัง', secGlassPane: '🪟 กระจก · บาน',
+    on: 'เปิด', off: 'ปิด', equipped: 'ใช้อยู่', equip: 'ใช้',
+    locked: 'ล็อก 🔒', comingSoon: 'เร็วๆ นี้', newMapsSoon: 'แผนที่ใหม่เร็วๆ นี้!',
+    unlockMode: '🔓 ปลดล็อก (⭐{0})', buyPrice: '⭐{0} ซื้อ', starRevive: '⭐ {0} เพื่อฟื้น (มี {1})',
+    adRevive: '📺 ดูโฆษณาเพื่อฟื้น', freeRevive: '💫 ฟื้นฟรี (1 ครั้ง)',
+    hintNeedScore: '🔒 ทำ {1} ใน {0} ก่อน (สูงสุด {2})', hintNeedStars: '⭐ ไม่พอ! ต้องการ ⭐{0}',
+    hintConfirm: '🔓 แตะอีกครั้งเพื่อปลดล็อก', unlockConfirmBtn: 'ปลดล็อก? (⭐{0})', unlockDone: '🔓 ปลดล็อก {0} แล้ว!',
+    mapStatusLocked: '🔒 {0} {1}แต้ม (สูงสุด {2}) + ⭐{3}', resetConfirm: 'แตะอีกครั้งเพื่อล้าง', langTitle: '🌐 ภาษา',
+    helpBody: '🐤 <b>การควบคุม</b><br>แตะ / Space : กระพือปีก (กระโดดขึ้น)<br>◀ ▶ ปุ่ม / ลูกศร : เคลื่อนที่<br>✨ ปุ่ม / Shift·S : สกิลของนก<br><br>⭐ <b>ดาว</b> : เก็บดาวเพื่อซื้อนกและของตกแต่ง และปลดล็อกแผนที่<br><br>💫 <b>ฟื้น</b> : ฟื้นด้วยดาวเมื่อตาย (ราคาเพิ่มเป็น 2 เท่า)<br><br>🗺️ <b>แผนที่</b> : ปัดที่หน้าจอหลัก · ปลดล็อกด้วยคะแนนแผนที่ก่อนหน้า + ดาว',
+  },
+  tr: {
+    settings: '⚙️ Ayarlar', title: 'Wing Dodge 3D', play: 'Oyna', shop: '⭐ Mağaza',
+    sound: '🔊 Ses', vibration: '📳 Titreşim', lowGfx: '🪶 Düşük grafik', language: '🌐 Dil',
+    help: '❓ Yardım', support: '📮 Destek', resetData: '🗑 Verileri sıfırla', close: 'Kapat',
+    reviveQ: '💫 Canlan?', score: 'Puan', giveUp: 'Vazgeç', playingAd: '📺 Reklam oynatılıyor...',
+    adPlaceholder: '(Reklam SDK buraya gelecek)', gameOver: 'Oyun Bitti',
+    starsPlus: '⭐ Yıldız +', best: 'En iyi', retry: 'Tekrar', leaderboard: '🏆 Sıralama',
+    menu: 'Menü', owned: 'Sahip', backToMenu: 'Geri',
+    secBird: '🐤 Kuşlar (renk için dokun)', secForestTree: '🌲 Orman · Ağaçlar',
+    secTempleSky: '🏛️ Tapınak · Gökyüzü', secTemplePillar: '🏛️ Tapınak · Sütunlar',
+    secGlassBg: '🪟 Cam · Arka plan', secGlassPane: '🪟 Cam · Panel',
+    on: 'Açık', off: 'Kapalı', equipped: 'Takılı', equip: 'Tak',
+    locked: 'Kilitli 🔒', comingSoon: 'Yakında', newMapsSoon: 'Yeni haritalar yakında!',
+    unlockMode: '🔓 Aç (⭐{0})', buyPrice: '⭐{0} Al', starRevive: '⭐ {0} ile canlan (var {1})',
+    adRevive: '📺 Reklam izle canlan', freeRevive: '💫 Ücretsiz canlan (1x)',
+    hintNeedScore: '🔒 Önce {0} haritasında {1} yap (en iyi {2})', hintNeedStars: '⭐ Yetersiz! Gerekli ⭐{0}',
+    hintConfirm: '🔓 Açmak için tekrar dokun', unlockConfirmBtn: 'Açılsın mı? (⭐{0})', unlockDone: '🔓 {0} açıldı!',
+    mapStatusLocked: '🔒 {0} {1}p (en iyi {2}) + ⭐{3}', resetConfirm: 'Sıfırlamak için tekrar dokun', langTitle: '🌐 Dil',
+    helpBody: '🐤 <b>Kontroller</b><br>Dokun / Boşluk : kanat çırp (zıpla)<br>◀ ▶ düğmeler / oklar : hareket<br>✨ düğme / Shift·S : kuş yeteneği<br><br>⭐ <b>Yıldızlar</b> : yıldız toplayıp kuş ve süs al, harita aç<br><br>💫 <b>Canlanma</b> : ölünce yıldızla canlan (maliyet her seferinde 2 kat)<br><br>🗺️ <b>Haritalar</b> : başlık ekranında kaydır · önceki harita puanı + yıldızla aç',
+  },
+  hi: {
+    settings: '⚙️ सेटिंग', title: 'Wing Dodge 3D', play: 'खेलें', shop: '⭐ दुकान',
+    sound: '🔊 आवाज़', vibration: '📳 कंपन', lowGfx: '🪶 कम ग्राफ़िक्स', language: '🌐 भाषा',
+    help: '❓ मदद', support: '📮 सहायता', resetData: '🗑 डेटा रीसेट', close: 'बंद करें',
+    reviveQ: '💫 फिर जीवित?', score: 'स्कोर', giveUp: 'हार मानें', playingAd: '📺 विज्ञापन चल रहा...',
+    adPlaceholder: '(विज्ञापन SDK यहाँ आएगा)', gameOver: 'गेम ओवर',
+    starsPlus: '⭐ तारे +', best: 'सर्वश्रेष्ठ', retry: 'फिर से', leaderboard: '🏆 रैंकिंग',
+    menu: 'मेनू', owned: 'आपके पास', backToMenu: 'वापस',
+    secBird: '🐤 पक्षी (रंग हेतु टैप)', secForestTree: '🌲 जंगल · पेड़',
+    secTempleSky: '🏛️ मंदिर · आसमान', secTemplePillar: '🏛️ मंदिर · स्तंभ',
+    secGlassBg: '🪟 कांच · पृष्ठभूमि', secGlassPane: '🪟 कांच · शीशा',
+    on: 'चालू', off: 'बंद', equipped: 'लगा है', equip: 'लगाएं',
+    locked: 'बंद 🔒', comingSoon: 'जल्द आ रहा', newMapsSoon: 'नए नक्शे जल्द!',
+    unlockMode: '🔓 अनलॉक (⭐{0})', buyPrice: '⭐{0} खरीदें', starRevive: '⭐ {0} से जीवित (आपके पास {1})',
+    adRevive: '📺 विज्ञापन देखें जीवित हों', freeRevive: '💫 मुफ़्त जीवित (1 बार)',
+    hintNeedScore: '🔒 पहले {0} में {1} पाएं (सर्वश्रेष्ठ {2})', hintNeedStars: '⭐ कम! चाहिए ⭐{0}',
+    hintConfirm: '🔓 अनलॉक हेतु फिर टैप करें', unlockConfirmBtn: 'अनलॉक करें? (⭐{0})', unlockDone: '🔓 {0} अनलॉक हुआ!',
+    mapStatusLocked: '🔒 {0} {1}अंक (सर्वश्रेष्ठ {2}) + ⭐{3}', resetConfirm: 'रीसेट हेतु फिर टैप करें', langTitle: '🌐 भाषा',
+    helpBody: '🐤 <b>नियंत्रण</b><br>टैप / स्पेस : पंख फड़फड़ाएं (ऊपर कूदें)<br>◀ ▶ बटन / तीर कुंजी : चलें<br>✨ बटन / Shift·S : पक्षी की क्षमता<br><br>⭐ <b>तारे</b> : तारे इकट्ठा कर पक्षी व सजावट खरीदें और नक्शे अनलॉक करें<br><br>💫 <b>पुनर्जीवन</b> : मरने पर तारों से जीवित हों (हर बार लागत दोगुनी)<br><br>🗺️ <b>नक्शे</b> : शीर्षक स्क्रीन पर स्वाइप करें · पिछले नक्शे के स्कोर + तारों से अनलॉक',
+  },
+};
+const t = (k, ...a) => {
+  const v = (UI[lang] || UI.en)[k] ?? UI.en[k] ?? k;
+  return v.replace(/\{(\d+)\}/g, (_, i) => a[i] ?? '');
+};
+// data-i18n 속성을 가진 정적 요소에 번역 적용 + 동적 화면 갱신
+function applyLang() {
+  document.documentElement.lang = lang;
+  for (const el of document.querySelectorAll('[data-i18n]')) el.textContent = t(el.dataset.i18n);
+  for (const el of document.querySelectorAll('[data-i18n-html]')) el.innerHTML = t(el.dataset.i18nHtml);
+  for (const el of document.querySelectorAll('[data-i18n-title]')) el.title = t(el.dataset.i18nTitle);
+}
+
+// ---------- 상점 아이템 ----------
+const ITEMS = [
+  // 새 (종류별 모델 + 색상 선택 + 고유 스킬)
+  { id: 'bird-chick',   cat: 'bird', name: '병아리', price: 0,  species: 'chick',
+    body: 0xffd93b, belly: 0xfff3d6, wing: 0xf0b429, head: 0xffd93b, beak: 0xff8c00 },
+  { id: 'bird-sparrow', cat: 'bird', name: '참새',   price: 45, species: 'sparrow',
+    body: 0x8d6e4f, belly: 0xe8dcc3, wing: 0x6d523a, head: 0x7a5c40, beak: 0xffa726 },
+  { id: 'bird-swallow', cat: 'bird', name: '제비',   price: 90, species: 'swallow',
+    body: 0x2c3e66, belly: 0xf2ede2, wing: 0x1f2c4a, head: 0x24345c, beak: 0x37474f },
+  { id: 'bird-owl',     cat: 'bird', name: '부엉이', price: 135, species: 'owl',
+    body: 0x9c7a4e, belly: 0xe5d5b5, wing: 0x7a5c38, head: 0x8a6a42, beak: 0x5d4037 },
+  { id: 'bird-eagle',   cat: 'bird', name: '독수리', price: 180, species: 'eagle',
+    body: 0x5d4326, belly: 0x7a5c38, wing: 0x4a3420, head: 0xf5f5f0, beak: 0xd9a520 },
+  // 맵 테마
+  // 숲 나무 품종 (신전 기둥처럼 — 배경·가지·잎이 그 나무 분위기로)
+  { id: 'forest-oak', cat: 'forestStyle', name: '참나무', price: 0, gate: 'forest',
+    sky: 0x9fdcec, groundA: 0x68b544, groundB: 0x59a139, cloud: 0xffffff,
+    foliage: 0x2f9e44, trunk: 0x6d4c2b, mountain: 0x4f8f5f, ruin: 0xb8c4a8,
+    barkC: 0x7a5230, leafC: 0x3fa34d,
+    celestial: 'sun', celestialColor: 0xfff176, amb: 0.7, sunI: 1.1, sunC: 0xfff6d8 },
+  { id: 'forest-pine', cat: 'forestStyle', name: '소나무', price: 60, gate: 'forest', leafShape: 'cone',
+    sky: 0x9cc8d8, groundA: 0x4e8f45, groundB: 0x437e3b, cloud: 0xe8f0f2,
+    foliage: 0x1f6b35, trunk: 0x5d4328, mountain: 0x3f6f52, ruin: 0xa8b4a0,
+    barkC: 0x5d4328, leafC: 0x226b38,
+    celestial: 'sun', celestialColor: 0xf4f8e0, amb: 0.68, sunI: 1.0, sunC: 0xf0f6e0 },
+  { id: 'forest-cherry', cat: 'forestStyle', name: '벚꽃나무', price: 90, gate: 'forest',
+    sky: 0xf7d9e8, groundA: 0x8fc97a, groundB: 0x7fb96a, cloud: 0xffffff,
+    foliage: 0xf4a8c8, trunk: 0x6d4c2b, mountain: 0x8faf8a, ruin: 0xd8c4cc,
+    barkC: 0x6d4c2b, leafC: 0xf79ec4,
+    celestial: 'sun', celestialColor: 0xfff1f6, amb: 0.75, sunI: 1.0, sunC: 0xffe9f2 },
+  { id: 'forest-maple', cat: 'forestStyle', name: '단풍나무', price: 90, gate: 'forest',
+    sky: 0xf5c97a, groundA: 0xb08a3f, groundB: 0x9c7836, cloud: 0xffe8c8,
+    foliage: 0xd9552f, trunk: 0x5d3f24, mountain: 0x9c6a3f, ruin: 0xc4a878,
+    barkC: 0x5d3f24, leafC: 0xd9432f,
+    celestial: 'sun', celestialColor: 0xffb45e, amb: 0.65, sunI: 1.0, sunC: 0xffd9a0 },
+  { id: 'forest-ginkgo', cat: 'forestStyle', name: '은행나무', price: 120, gate: 'forest',
+    sky: 0xcfe3ec, groundA: 0xcdb84f, groundB: 0xbfa945, cloud: 0xfff6d8,
+    foliage: 0xf2c53d, trunk: 0x6a5638, mountain: 0xa89a52, ruin: 0xc8bc88,
+    barkC: 0x6a5638, leafC: 0xf2c53d,
+    celestial: 'sun', celestialColor: 0xfff3c4, amb: 0.72, sunI: 1.05, sunC: 0xfff0c0 },
+  { id: 'forest-snow', cat: 'forestStyle', name: '눈꽃나무', price: 150, gate: 'forest', snow: true,
+    sky: 0xdfe9f0, groundA: 0xd8e2e8, groundB: 0xc8d4da, cloud: 0xffffff,
+    foliage: 0xe8f0f4, trunk: 0x5a4738, mountain: 0xc0ccd4, ruin: 0xb8c0c8,
+    barkC: 0x5a4738, leafC: 0xdfe9f0,
+    celestial: 'sun', celestialColor: 0xf4f8ff, amb: 0.85, sunI: 0.6, sunC: 0xeef4ff },
+  { id: 'map-day',    cat: 'map', name: '맑은 하늘', price: 0,  gate: 'columns',
+    sky: 0x70c5ce, groundA: 0x7ec850, groundB: 0x6db544, cloud: 0xffffff,
+    foliage: 0x3faf46, trunk: 0x8b5a2b, mountain: 0x7da87b, ruin: 0xcfc9b8,
+    celestial: 'sun', celestialColor: 0xfff176, amb: 0.65, sunI: 1.2, sunC: 0xfff2cc },
+  { id: 'map-sunset', cat: 'map', name: '노을',     price: 60, gate: 'columns',
+    sky: 0xff9e66, groundA: 0xb0873f, groundB: 0x9c7635, cloud: 0xffd9c0,
+    foliage: 0xc97b2f, trunk: 0x7a4a22, mountain: 0xb5766a, ruin: 0xe0c6a8,
+    celestial: 'sun', celestialColor: 0xffa64e, amb: 0.6, sunI: 1.0, sunC: 0xffc27d },
+  { id: 'map-night',  cat: 'map', name: '한밤중',   price: 105, gate: 'columns',
+    sky: 0x1c2a4a, groundA: 0x35543a, groundB: 0x2a4530, cloud: 0x9aa7c4,
+    foliage: 0x1e4d2b, trunk: 0x4a3320, mountain: 0x2f3d55, ruin: 0x8b8fa3,
+    celestial: 'moon', amb: 0.4, sunI: 0.55, sunC: 0xbfd0ff },
+  { id: 'map-space',  cat: 'map', name: '우주',     price: 180, gate: 'columns',
+    sky: 0x0b0b1e, groundA: 0x3a2b5c, groundB: 0x2d2148, cloud: 0x6a5a8a,
+    foliage: 0x8a5fd6, trunk: 0x3d2a66, mountain: 0x241a44, ruin: 0x6f5f96,
+    celestial: 'planet', amb: 0.45, sunI: 0.65, sunC: 0xd0c0ff },
+  { id: 'map-glass', cat: 'map', name: '깨진 유리창', price: 140, gate: 'window', glass: 0xaad4e8,
+    sky: 0x9fb4bd, groundA: 0x868f95, groundB: 0x788188, cloud: 0xc5cdd2,
+    foliage: 0x6f7f72, trunk: 0x5a4f42, mountain: 0x74838c, ruin: 0x9aa2a8,
+    celestial: 'none', amb: 0.7, sunI: 0.6, sunC: 0xdfe6ea, fogNear: 40, fogFar: 160 },
+  { id: 'map-backrooms', cat: 'map', name: '백룸', price: 160, gate: 'backroom',
+    sky: 0xc9bd72, groundA: 0x9d914f, groundB: 0x8d8245, cloud: 0xd6ca85,
+    foliage: 0xb1a455, trunk: 0x7d7136, mountain: 0xa2954e, ruin: 0xd0c47c,
+    celestial: 'none', amb: 0.9, sunI: 0.35, sunC: 0xfff2b8, fogNear: 20, fogFar: 100 },
+  // 기둥 스타일
+  { id: 'pillar-marble',   cat: 'pillar', name: '대리석', price: 0,  colA: 0xf2eee3, colB: 0xd9d3c2 },
+  { id: 'pillar-bronze',   cat: 'pillar', name: '청동',   price: 75, colA: 0xc9985a, colB: 0x9c703c },
+  { id: 'pillar-obsidian', cat: 'pillar', name: '흑요석', price: 135, colA: 0x4a4a56, colB: 0x2e2e38 },
+  { id: 'pillar-gold',     cat: 'pillar', name: '황금',   price: 240, colA: 0xffd54a, colB: 0xcfa017 },
+  // 유리창 모드 · 배경 (하늘/날씨)
+  { id: 'bg-ruin',      cat: 'glassBg', name: '폐건물', price: 0,
+    sky: 0x9fb4bd, groundA: 0x868f95, groundB: 0x788188, amb: 0.7, sunI: 0.6, sunC: 0xdfe6ea, fogNear: 40, fogFar: 160 },
+  { id: 'bg-dawn',      cat: 'glassBg', name: '새벽', price: 60,
+    sky: 0xf2c9c0, groundA: 0x9a8f95, groundB: 0x8b8188, amb: 0.75, sunI: 0.8, sunC: 0xffd9c9, fogNear: 50, fogFar: 180 },
+  { id: 'bg-dusk',      cat: 'glassBg', name: '저녁노을', price: 60,
+    sky: 0xf59a5c, groundA: 0x8f7a66, groundB: 0x816d5a, amb: 0.65, sunI: 0.9, sunC: 0xffb070, fogNear: 45, fogFar: 170 },
+  { id: 'bg-winter',    cat: 'glassBg', name: '겨울', price: 90, snow: true,
+    sky: 0xdfe8ee, groundA: 0xc8d2d8, groundB: 0xb8c2c8, amb: 0.85, sunI: 0.5, sunC: 0xeef4ff, fogNear: 35, fogFar: 140 },
+  { id: 'bg-nightcity', cat: 'glassBg', name: '한밤 도시', price: 90,
+    sky: 0x101826, groundA: 0x252c38, groundB: 0x1c222c, amb: 0.4, sunI: 0.45, sunC: 0x9fb8ff, fogNear: 40, fogFar: 150 },
+  { id: 'bg-storm',     cat: 'glassBg', name: '폭풍우', price: 120, rain: true, lightning: true,
+    sky: 0x3a4450, groundA: 0x4a525a, groundB: 0x3e454c, amb: 0.5, sunI: 0.4, sunC: 0xaab8c8, fogNear: 30, fogFar: 120 },
+  { id: 'bg-dynamic',   cat: 'glassBg', name: '🔄 다이나믹 (점점 격변)', price: 90, dynamic: true },
+  // 유리창 모드 · 유리 (판 색/종류)
+  { id: 'pane-clear',   cat: 'glassPane', name: '맑은 유리', price: 0,
+    glass: 0xaad4e8, crack: 0xffffff },
+  { id: 'pane-amber',   cat: 'glassPane', name: '호박 유리', price: 60,
+    glass: 0xffb974, crack: 0xfff2dd },
+  { id: 'pane-frost',   cat: 'glassPane', name: '서리 유리', price: 90,
+    glass: 0xd8ecf4, crack: 0xffffff, opacity: 0.55 },
+  { id: 'pane-neon',    cat: 'glassPane', name: '네온 유리', price: 120,
+    glass: 0x2a1840, crack: 0xff4fd8, opacity: 0.5 },
+  { id: 'pane-stained', cat: 'glassPane', name: '스테인드글라스', price: 180, stained: true,
+    glass: 0xffffff, crack: 0x3a3244, rim: 0xffe9a0, opacity: 0.5 },
+];
+// 상점 섹션: 모드는 무료, 모드별 꾸미기만 판매
+// mode가 지정된 섹션은 현재 선택한 맵에서만 상점에 보임
+const SECTIONS = [
+  { labelKey: 'secBird', filter: i => i.cat === 'bird' },
+  { labelKey: 'secForestTree', mode: 'forest', filter: i => i.cat === 'forestStyle' },
+  { labelKey: 'secTempleSky', mode: 'temple', filter: i => i.cat === 'map' && i.gate === 'columns' },
+  { labelKey: 'secTemplePillar', mode: 'temple', filter: i => i.cat === 'pillar' },
+  { labelKey: 'secGlassBg', mode: 'glass', filter: i => i.cat === 'glassBg' },
+  { labelKey: 'secGlassPane', mode: 'glass', filter: i => i.cat === 'glassPane' },
+];
+const itemById = id => ITEMS.find(i => i.id === id);
+// 모드 목록 + 해금 조건 (이전 맵 최소 점수 달성 + 별 구매, 둘 다 필요)
+// label은 이모지+이름(nm)으로 동적 생성 → modeLabel()
+// cost 0 + req → 점수만 달성하면 자동 해금 / cost > 0 → 점수 + 별 구매
+const MODES = [
+  { id: 'forest',    emoji: '🌲', cost: 0 },
+  { id: 'temple',    emoji: '🏛️', cost: 0,    req: { mode: 'forest', score: 50 } },
+  { id: 'glass',     emoji: '🪟', cost: 500,  req: { mode: 'temple', score: 100 } },
+  { id: 'backrooms', emoji: '🟨', cost: 1000, req: { mode: 'glass', score: 150 } },
+];
+const modeLabel = s => `${s.emoji} ${nm(s.id)}`;
+const reqMet = m => !m.req || (save.bestMode[m.req.mode] ?? 0) >= m.req.score;
+const modeUnlocked = m =>
+  !m.req ? true                                       // 숲: 항상
+  : (save.unlockedModes ?? []).includes(m.id) ? true  // 이미 해금됨
+  : m.cost === 0 ? reqMet(m)                          // 무료: 점수만 달성하면 자동
+  : false;                                            // 유료: 별로 구매 필요
+
+// 현재 모드의 세계 설정 (메뉴에서는 캐러셀 미리보기 우선, 신전은 장착한 하늘)
+const worldItem = () => {
+  const id = previewModeId ?? save.mode;
+  return id === 'forest' ? itemById(save.equipped.forestStyle) :
+    id === 'glass' ? itemById('map-glass') :
+    id === 'backrooms' ? itemById('map-backrooms') :
+    itemById(save.equipped.map);
+};
+
+// 종류별 색상 변형 (기본 = 각 새의 자연색)
+const COLOR_VARIANTS = [
+  { id: 'natural', name: '기본', price: 0 },
+  { id: 'blue',  name: '파랑', price: 30, body: 0x4fc3f7, belly: 0xe1f5fe, wing: 0x0288d1, head: 0x3ab0e0 },
+  { id: 'red',   name: '빨강', price: 30, body: 0xef5350, belly: 0xffebee, wing: 0xc62828, head: 0xd84340 },
+  { id: 'mint',  name: '민트', price: 30, body: 0x5fe0c0, belly: 0xe0fff7, wing: 0x1fa98a, head: 0x46c9ab },
+];
+
+// 예전 저장 호환
+if (save.owned.includes('pillar-glass')) {          // '깨진 유리창': 기둥 스타일 → 맵으로 이동
+  if (!save.owned.includes('map-glass')) save.owned.push('map-glass');
+}
+if (!save.owned.includes('bird-chick')) save.owned.push('bird-chick');   // 병아리가 기본
+if (!save.owned.includes('bg-ruin')) save.owned.push('bg-ruin');
+if (!save.owned.includes('pane-clear')) save.owned.push('pane-clear');
+if (!save.owned.includes('forest-oak')) save.owned.push('forest-oak');
+// 유리창 스타일 → 배경/유리 분리 이전
+{
+  const bgMap = { 'glass-default': 'bg-ruin', 'glass-dawn': 'bg-dawn', 'glass-dusk': 'bg-dusk',
+    'glass-winter': 'bg-winter', 'glass-nightcity': 'bg-nightcity', 'glass-storm': 'bg-storm',
+    'glass-dynamic': 'bg-dynamic' };
+  const paneMap = { 'glass-winter': 'pane-frost', 'glass-neon': 'pane-neon', 'glass-stained': 'pane-stained' };
+  for (const [o, nw] of Object.entries(bgMap))
+    if (save.owned.includes(o) && !save.owned.includes(nw)) save.owned.push(nw);
+  for (const [o, nw] of Object.entries(paneMap))
+    if (save.owned.includes(o) && !save.owned.includes(nw)) save.owned.push(nw);
+  if (save.owned.includes('glass-neon') && !save.owned.includes('bg-nightcity')) save.owned.push('bg-nightcity');
+  const oldEq = save.equipped.glassStyle;
+  if (oldEq) {
+    if (bgMap[oldEq]) save.equipped.glassBg = bgMap[oldEq];
+    if (paneMap[oldEq]) save.equipped.glassPane = paneMap[oldEq];
+    if (oldEq === 'glass-neon') save.equipped.glassBg = 'bg-nightcity';
+    delete save.equipped.glassStyle;
+  }
+}
+// 계절 스타일 → 나무 품종 이전
+{
+  const treeMigrate = { 'forest-spring': 'forest-oak', 'forest-autumn': 'forest-maple',
+    'forest-sakura': 'forest-cherry', 'forest-winter': 'forest-snow' };
+  for (const [o, nw] of Object.entries(treeMigrate)) {
+    if (save.owned.includes(o) && !save.owned.includes(nw)) save.owned.push(nw);
+    if (save.equipped.forestStyle === o) save.equipped.forestStyle = nw;
+  }
+  if (save.owned.includes('forest-night')) save.wallet += 90;   // 밤의 숲 단종 → 환불
+}
+if (save.owned.includes('bird-classic') && !save.owned.includes('bird-chick'))
+  save.owned.push('bird-chick');                    // 옛 기본 병아리 → 병아리 종
+if (save.equipped.bird === 'bird-classic') save.equipped.bird = 'bird-chick';
+for (const [oldId, amt] of Object.entries({ 'bird-blue': 15, 'bird-red': 25, 'bird-mint': 40, 'bird-falcon': 50 }))
+  if (save.owned.includes(oldId)) save.wallet += amt;   // 단색 새들은 색상 시스템으로 대체 → 환불
+save.birdColor = save.birdColor ?? {};
+// 맵 → 모드 전환: 유리창·백룸은 이제 무료 모드라 구매금 환불
+save.mode = save.mode ?? (save.equipped.map === 'map-glass' ? 'glass'
+  : save.equipped.map === 'map-backrooms' ? 'backrooms' : 'temple');
+save.bestMode = save.bestMode ?? {};
+save.unlockedModes = save.unlockedModes ?? ['forest'];
+// 예전 점수-달성 해금 방식에서 넘어온 저장: 이미 달성한 맵은 그대로 해금 유지
+if ((save.bestMode.forest ?? 0) >= 10 && !save.unlockedModes.includes('temple')) save.unlockedModes.push('temple');
+if ((save.bestMode.temple ?? 0) >= 15 && !save.unlockedModes.includes('glass')) save.unlockedModes.push('glass');
+if ((save.bestMode.glass ?? 0) >= 20 && !save.unlockedModes.includes('backrooms')) save.unlockedModes.push('backrooms');
+// 잠긴 모드가 선택돼 있으면 기본 스테이지(숲)로
+{
+  const mObj = MODES.find(x => x.id === save.mode);
+  if (!mObj || !modeUnlocked(mObj)) save.mode = 'forest';
+}
+if (save.owned.includes('map-glass')) save.wallet += 140;
+if (save.owned.includes('map-backrooms')) save.wallet += 160;
+save.owned = save.owned.filter(id => id !== 'map-glass' && id !== 'map-backrooms');
+if (save.equipped.map === 'map-glass' || save.equipped.map === 'map-backrooms') save.equipped.map = 'map-day';
+save.owned = save.owned.filter(id => itemById(id) || id.startsWith('color-'));
+for (const [cat, def] of [['bird', 'bird-chick'], ['map', 'map-day'], ['pillar', 'pillar-marble'], ['glassBg', 'bg-ruin'], ['glassPane', 'pane-clear'], ['forestStyle', 'forest-oak']])
+  if (!itemById(save.equipped[cat]) || itemById(save.equipped[cat]).cat !== cat) save.equipped[cat] = def;
+persist();
+
+// ---------- 기본 세팅 ----------
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x70c5ce);
+scene.fog = new THREE.Fog(0x70c5ce, 60, 210);
+
+const camera = new THREE.PerspectiveCamera(70, innerWidth / innerHeight, 0.1, 400);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+document.body.appendChild(renderer.domElement);
+
+// 가로 시야 고정: 화면이 세로로 길어도 배경이 가로로 넓게 펼쳐 보이게
+const BASE_FOV = 70, BASE_AR = 16 / 9;
+const H_HALF = Math.atan(Math.tan(THREE.MathUtils.degToRad(BASE_FOV) / 2) * BASE_AR);
+function applyCamera() {
+  const ar = innerWidth / innerHeight;
+  camera.aspect = ar;
+  const v = THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(H_HALF) / ar));
+  camera.fov = THREE.MathUtils.clamp(v, 55, 95);   // 너무 넓어져 왜곡되지 않게 제한
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+}
+applyCamera();
+addEventListener('resize', applyCamera);
+
+const ambient = new THREE.AmbientLight(0xffffff, 0.65);
+scene.add(ambient);
+const sun = new THREE.DirectionalLight(0xfff2cc, 1.2);
+sun.position.set(30, 60, 20);
+sun.castShadow = true;
+sun.shadow.camera.left = -40; sun.shadow.camera.right = 40;
+sun.shadow.camera.top = 40; sun.shadow.camera.bottom = -40;
+sun.shadow.camera.far = 200;
+scene.add(sun);
+
+// ---------- 코스 규격 ----------
+const HALF_W = 9;
+const CEIL = 18;
+const GATE_DEPTH = 3.2;
+const GATE_SPACING = 42;
+const rand = (a, b) => a + Math.random() * (b - a);
+
+// ---------- 바닥 ----------
+const groundCanvas = document.createElement('canvas');
+groundCanvas.width = groundCanvas.height = 128;
+const groundTex = new THREE.CanvasTexture(groundCanvas);
+groundTex.wrapS = groundTex.wrapT = THREE.RepeatWrapping;
+groundTex.repeat.set(20, 60);
+function drawGround(a, b) {
+  const g = groundCanvas.getContext('2d');
+  g.fillStyle = '#' + a.toString(16).padStart(6, '0'); g.fillRect(0, 0, 128, 128);
+  g.fillStyle = '#' + b.toString(16).padStart(6, '0'); g.fillRect(0, 0, 128, 64);
+  groundTex.needsUpdate = true;
+}
+const ground = new THREE.Mesh(
+  new THREE.PlaneGeometry(300, 600),
+  new THREE.MeshLambertMaterial({ map: groundTex })
+);
+ground.rotation.x = -Math.PI / 2;
+ground.position.z = -200;
+ground.receiveShadow = true;
+scene.add(ground);
+
+// 구름
+const cloudMat = new THREE.MeshLambertMaterial({ color: 0xffffff });
+const clouds = [];
+for (let i = 0; i < 14; i++) {
+  const cl = new THREE.Group();
+  for (let j = 0; j < 3; j++) {
+    const s = new THREE.Mesh(new THREE.SphereGeometry(2 + Math.random() * 2, 10, 10), cloudMat);
+    s.position.set(j * 2.5 - 2.5, Math.random(), Math.random());
+    cl.add(s);
+  }
+  cl.position.set((Math.random() - 0.5) * 120, 24 + Math.random() * 14, -Math.random() * 300);
+  scene.add(cl);
+  clouds.push(cl);
+}
+
+// ---------- 배경 꾸미기 (양옆 소품 + 하늘) ----------
+const foliageMat  = new THREE.MeshLambertMaterial({ color: 0x3faf46, flatShading: true });
+const trunkMat    = new THREE.MeshLambertMaterial({ color: 0x8b5a2b });
+const mountainMat = new THREE.MeshLambertMaterial({ color: 0x7da87b, flatShading: true });
+const ruinMat     = new THREE.MeshLambertMaterial({ color: 0xcfc9b8, flatShading: true });
+
+const sideProps = [];   // { obj, parallax, min, max }
+const randSideX = (min, max) =>
+  (Math.random() < 0.5 ? -1 : 1) * (min + Math.random() * (max - min));
+
+// 나무
+const trunkGeo = new THREE.CylinderGeometry(0.5, 0.7, 3, 8);
+const foliageGeo = new THREE.ConeGeometry(3, 7, 8);
+for (let i = 0; i < 26; i++) {
+  const tr = new THREE.Group();
+  const trunk = new THREE.Mesh(trunkGeo, trunkMat);
+  trunk.position.y = 1.5;
+  const fol = new THREE.Mesh(foliageGeo, foliageMat);
+  fol.position.y = 6.5;
+  trunk.castShadow = fol.castShadow = true;
+  tr.add(trunk, fol);
+  tr.scale.setScalar(0.7 + Math.random() * 0.9);
+  tr.position.set(randSideX(13, 42), 0, 10 - Math.random() * 340);
+  scene.add(tr);
+  sideProps.push({ obj: tr, parallax: 1, min: 13, max: 42 });
+}
+
+// 원거리 산 (느린 패럴랙스)
+const mtGeo = new THREE.ConeGeometry(18, 26, 6);
+for (let i = 0; i < 10; i++) {
+  const m = new THREE.Mesh(mtGeo, mountainMat);
+  const sc = 0.8 + Math.random() * 1.2;
+  m.scale.set(sc, sc * (0.8 + Math.random() * 0.6), sc);
+  m.position.set(randSideX(48, 110), 13 * m.scale.y, -Math.random() * 340);
+  scene.add(m);
+  sideProps.push({ obj: m, parallax: 0.35, min: 48, max: 110 });
+}
+
+// 무너진 신전 유적
+function makeRuin() {
+  const g = new THREE.Group();
+  const n = 3 + Math.floor(Math.random() * 2);
+  const h = 4 + Math.random() * 2;
+  for (let i = 0; i < n; i++) {
+    const c = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.6, h, 10), ruinMat);
+    c.position.set(i * 2.2, h / 2, 0);
+    c.castShadow = true;
+    g.add(c);
+  }
+  const lintel = new THREE.Mesh(new THREE.BoxGeometry(2.2 * (n - 1) + 1.8, 0.7, 1.5), ruinMat);
+  lintel.position.set(2.2 * (n - 1) / 2, h + 0.35, 0);
+  lintel.castShadow = true;
+  g.add(lintel);
+  const fallen = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.6, 3.2, 10), ruinMat);
+  fallen.rotation.set(0, Math.random() * Math.PI, Math.PI / 2);
+  fallen.position.set(-2.4, 0.55, 1.6);
+  g.add(fallen);
+  g.rotation.y = (Math.random() - 0.5) * 1.2;
+  return g;
+}
+for (let i = 0; i < 6; i++) {
+  const r = makeRuin();
+  r.position.set(randSideX(15, 38), 0, 10 - Math.random() * 340);
+  scene.add(r);
+  sideProps.push({ obj: r, parallax: 1, min: 15, max: 38, kind: 'ruin' });
+}
+
+// 해 / 달 / 고리 행성 (테마별로 하나만 표시)
+const sunSphere = new THREE.Mesh(new THREE.SphereGeometry(6, 16, 16),
+  new THREE.MeshBasicMaterial({ color: 0xfff176, fog: false }));
+sunSphere.position.set(45, 40, -160);
+scene.add(sunSphere);
+
+const moonSphere = new THREE.Mesh(new THREE.SphereGeometry(5, 16, 16),
+  new THREE.MeshBasicMaterial({ color: 0xeef2ff, fog: false }));
+moonSphere.position.set(-40, 38, -160);
+scene.add(moonSphere);
+
+const planet = new THREE.Group();
+{
+  const body = new THREE.Mesh(new THREE.SphereGeometry(7, 16, 16),
+    new THREE.MeshBasicMaterial({ color: 0xff8a65, fog: false }));
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(10.5, 1.1, 8, 40),
+    new THREE.MeshBasicMaterial({ color: 0xffcc80, fog: false }));
+  ring.rotation.x = 1.25;
+  planet.add(body, ring);
+}
+planet.position.set(42, 42, -170);
+scene.add(planet);
+
+// 밤하늘 별
+const starField = (() => {
+  const pos = [];
+  for (let i = 0; i < 400; i++) {
+    const a = Math.random() * Math.PI * 2;
+    const el = Math.random() * Math.PI * 0.45 + 0.08;
+    const r = 250;
+    pos.push(Math.cos(a) * Math.cos(el) * r, Math.sin(el) * r, -Math.abs(Math.sin(a)) * Math.cos(el) * r - 30);
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  const pts = new THREE.Points(geo,
+    new THREE.PointsMaterial({ color: 0xffffff, size: 2, sizeAttenuation: false, fog: false }));
+  scene.add(pts);
+  return pts;
+})();
+
+// ---------- 백룸 가구 (배경 소품 + 장애물 공용) ----------
+const bcWood = new THREE.MeshLambertMaterial({ color: 0x8a6f4a });
+const bcMetal = new THREE.MeshLambertMaterial({ color: 0x555b60 });
+const makeChair = () => {
+  const g = new THREE.Group();
+  const seat = new THREE.Mesh(new THREE.BoxGeometry(1, 0.12, 1), bcWood);
+  seat.position.y = 1;
+  const back = new THREE.Mesh(new THREE.BoxGeometry(1, 1.1, 0.12), bcWood);
+  back.position.set(0, 1.6, 0.45);
+  g.add(seat, back);
+  for (const [lx, lz] of [[-0.42, -0.42], [0.42, -0.42], [-0.42, 0.42], [0.42, 0.42]]) {
+    const leg = new THREE.Mesh(new THREE.BoxGeometry(0.09, 1, 0.09), bcMetal);
+    leg.position.set(lx, 0.5, lz);
+    g.add(leg);
+  }
+  return g;
+};
+const makeDesk = () => {
+  const g = new THREE.Group();
+  const top = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.12, 1.1), bcWood);
+  top.position.y = 1.4;
+  g.add(top);
+  for (const [lx, lz] of [[-1, -0.45], [1, -0.45], [-1, 0.45], [1, 0.45]]) {
+    const leg = new THREE.Mesh(new THREE.BoxGeometry(0.1, 1.4, 0.1), bcMetal);
+    leg.position.set(lx, 0.7, lz);
+    g.add(leg);
+  }
+  return g;
+};
+// 도로 표지판 5종 (정지 / 유턴 / 횡단보도 / 진입금지 / 주의)
+function signCanvas(draw) {
+  const c = document.createElement('canvas');
+  c.width = c.height = 128;
+  const g = c.getContext('2d');
+  g.fillStyle = '#d8d8d8'; g.fillRect(0, 0, 128, 128);
+  draw(g);
+  return new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c) });
+}
+const ROAD_SIGNS = [
+  // 정지: 빨간 팔각형
+  signCanvas(g => {
+    g.fillStyle = '#c62828';
+    g.beginPath();
+    for (let i = 0; i < 8; i++) {
+      const a = Math.PI / 8 + i * Math.PI / 4;
+      const x = 64 + 58 * Math.cos(a), y = 64 + 58 * Math.sin(a);
+      i ? g.lineTo(x, y) : g.moveTo(x, y);
+    }
+    g.closePath(); g.fill();
+    g.strokeStyle = '#fff'; g.lineWidth = 5; g.stroke();
+    g.fillStyle = '#fff'; g.font = 'bold 36px sans-serif';
+    g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillText('STOP', 64, 66);
+  }),
+  // 유턴: 파란 사각 + 흰 U 화살표
+  signCanvas(g => {
+    g.fillStyle = '#1565c0'; g.fillRect(0, 0, 128, 128);
+    g.strokeStyle = '#fff'; g.lineWidth = 11; g.lineCap = 'round';
+    g.beginPath();
+    g.moveTo(84, 36); g.lineTo(84, 72);
+    g.arc(64, 72, 20, 0, Math.PI, false);
+    g.lineTo(44, 54);
+    g.stroke();
+    g.fillStyle = '#fff';
+    g.beginPath(); g.moveTo(30, 56); g.lineTo(58, 56); g.lineTo(44, 30); g.closePath(); g.fill();
+  }),
+  // 횡단보도: 파란 사각 + 흰 삼각형 + 사람·줄무늬
+  signCanvas(g => {
+    g.fillStyle = '#1565c0'; g.fillRect(0, 0, 128, 128);
+    g.fillStyle = '#fff';
+    g.beginPath(); g.moveTo(64, 12); g.lineTo(120, 102); g.lineTo(8, 102); g.closePath(); g.fill();
+    g.fillStyle = '#222';
+    for (let i = 0; i < 4; i++) g.fillRect(30 + i * 20, 88, 12, 9);
+    g.strokeStyle = '#222'; g.lineWidth = 5; g.lineCap = 'round';
+    g.beginPath();
+    g.moveTo(62, 50); g.lineTo(60, 70);
+    g.moveTo(60, 70); g.lineTo(50, 86);
+    g.moveTo(60, 70); g.lineTo(70, 84);
+    g.moveTo(62, 52); g.lineTo(50, 62);
+    g.moveTo(62, 52); g.lineTo(74, 58);
+    g.stroke();
+    g.beginPath(); g.arc(64, 42, 7, 0, 7); g.fill();
+  }),
+  // 진입금지: 빨간 원 + 흰 가로 막대
+  signCanvas(g => {
+    g.fillStyle = '#c62828';
+    g.beginPath(); g.arc(64, 64, 54, 0, 7); g.fill();
+    g.fillStyle = '#fff'; g.fillRect(26, 56, 76, 16);
+  }),
+  // 주의: 노란 삼각형 + !
+  signCanvas(g => {
+    g.fillStyle = '#f9a825';
+    g.beginPath(); g.moveTo(64, 10); g.lineTo(120, 110); g.lineTo(8, 110); g.closePath(); g.fill();
+    g.strokeStyle = '#222'; g.lineWidth = 5; g.stroke();
+    g.fillStyle = '#222'; g.font = 'bold 54px sans-serif';
+    g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillText('!', 64, 80);
+  }),
+];
+const randSignMat = () => ROAD_SIGNS[Math.floor(Math.random() * ROAD_SIGNS.length)];
+const makeSign = () => {
+  const g = new THREE.Group();
+  const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 2.4, 8), bcMetal);
+  pole.position.y = 1.2;
+  const panel = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.2, 0.08), randSignMat());
+  panel.position.y = 2.4;
+  g.add(pole, panel);
+  return g;
+};
+// ---------- 백룸 장애물 가구 (원점에서 +Y로 len만큼) ----------
+const bcSteel = new THREE.MeshLambertMaterial({ color: 0x9aa0a6 });
+const bcShade = new THREE.MeshLambertMaterial({ color: 0xd8c07a });
+const bcGlow = new THREE.MeshBasicMaterial({ color: 0xfff4c4 });
+const bookMats = [0x7a4a3a, 0x4a5a7a, 0x5a7a4a, 0x8a7a4a].map(c => new THREE.MeshLambertMaterial({ color: c }));
+
+// 의자·책상 뒤죽박죽 탑
+function makeFurnitureStack(len) {
+  const g = new THREE.Group();
+  const s = 1.7;   // 확대 배율 (폭 ~2.6)
+  let y = 0;
+  while (y < len - 0.5) {
+    const isChair = Math.random() < 0.6;
+    const item = isChair ? makeChair() : makeDesk();
+    item.scale.setScalar(s);
+    item.position.y = y;
+    item.rotation.y = rand(-0.4, 0.4);
+    g.add(item);
+    y += (isChair ? 2.15 : 1.46) * s * 0.92;   // 살짝 겹치게 쌓기
+  }
+  return g;
+}
+
+// 책장: 선반 + 알록달록 책들
+function makeBookshelf(len) {
+  const g = new THREE.Group();
+  const W = 2.6, D = 1.0;
+  for (const sx of [-1, 1]) {
+    const side = new THREE.Mesh(new THREE.BoxGeometry(0.12, len, D), bcWood);
+    side.position.set(sx * (W / 2 - 0.06), len / 2, 0);
+    g.add(side);
+  }
+  const back = new THREE.Mesh(new THREE.BoxGeometry(W, len, 0.08), bcWood);
+  back.position.set(0, len / 2, D / 2 - 0.04);
+  g.add(back);
+  for (let y = 0.15; y < len - 0.2; y += 1.4) {
+    const shelf = new THREE.Mesh(new THREE.BoxGeometry(W - 0.2, 0.1, D - 0.1), bcWood);
+    shelf.position.set(0, y, 0);
+    g.add(shelf);
+    if (y + 1.2 < len) {
+      let bx = -W / 2 + 0.35;
+      while (bx < W / 2 - 0.4) {
+        const bw = rand(0.25, 0.5), bh = rand(0.7, 1.1);
+        const book = new THREE.Mesh(new THREE.BoxGeometry(bw, bh, D - 0.35),
+          bookMats[Math.floor(Math.random() * bookMats.length)]);
+        book.position.set(bx + bw / 2, y + bh / 2 + 0.05, 0);
+        g.add(book);
+        bx += bw + rand(0.05, 0.2);
+      }
+    }
+  }
+  return g;
+}
+
+// 철제 캐비닛: 서랍 손잡이가 플레이어 쪽을 향함
+function makeCabinet(len) {
+  const g = new THREE.Group();
+  const body = new THREE.Mesh(new THREE.BoxGeometry(2.2, len, 1.1), bcSteel);
+  body.position.y = len / 2;
+  g.add(body);
+  const n = Math.max(1, Math.floor(len / 1.1));
+  for (let i = 0; i < n; i++) {
+    const cy = (i + 0.5) * (len / n);
+    const line = new THREE.Mesh(new THREE.BoxGeometry(1.9, 0.05, 0.04), bcMetal);
+    line.position.set(0, cy + len / n / 2 - 0.05, -0.57);
+    g.add(line);
+    const handle = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.09, 0.08), bcMetal);
+    handle.position.set(0, cy, -0.6);
+    g.add(handle);
+  }
+  return g;
+}
+
+// 거대 스탠드 램프
+function makeBigLamp(len) {
+  const g = new THREE.Group();
+  const base = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 1.1, 0.25, 12), bcMetal);
+  base.position.y = 0.125;
+  const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.2, len - 1.5, 8), bcMetal);
+  pole.position.y = (len - 1.5) / 2 + 0.25;
+  const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.4, 10, 8), bcGlow);
+  bulb.position.y = len - 1.35;
+  const shade = new THREE.Mesh(new THREE.CylinderGeometry(0.85, 1.35, 1.3, 12, 1, true), bcShade);
+  shade.material.side = THREE.DoubleSide;
+  shade.position.y = len - 0.85;
+  g.add(base, pole, bulb, shade);
+  return g;
+}
+
+// 거대 도로 표지판 기둥 (긴 길이면 표지판 여러 개, 종류 랜덤)
+function makeBigSign(len) {
+  const g = new THREE.Group();
+  const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.24, len, 8), bcMetal);
+  pole.position.y = len / 2;
+  g.add(pole);
+  const n = Math.max(1, Math.floor(len / 3.2));
+  for (let i = 0; i < n; i++) {
+    const panel = new THREE.Mesh(new THREE.BoxGeometry(2.5, 2.5, 0.12), randSignMat());
+    panel.position.set(0, (i + 0.6) * (len / (n + 0.2)), -0.25);
+    panel.rotation.y = rand(-0.15, 0.15);
+    g.add(panel);
+  }
+  return g;
+}
+
+// 장애물 종류 랜덤 선택
+function makeObstacle(len) {
+  const r = Math.random();
+  const g =
+    r < 0.22 ? makeBookshelf(len) :
+    r < 0.42 ? makeCabinet(len) :
+    r < 0.57 ? makeBigLamp(len) :
+    r < 0.7  ? makeBigSign(len) :
+               makeFurnitureStack(len);
+  g.traverse(o => { if (o.isMesh) o.castShadow = true; });
+  return g;
+}
+
+// ---------- 백룸 세계 소품 (복도 + 가구) ----------
+const backProps = [];
+{
+  const bcWall = new THREE.MeshLambertMaterial({ color: 0xd3c67a });
+  const bcTrim = new THREE.MeshLambertMaterial({ color: 0xb0a45c });
+  const bcLamp = new THREE.MeshBasicMaterial({ color: 0xf8f8e6 });
+
+  // 좌우 복도 벽 + 걸레받이 (세그먼트 스크롤)
+  for (const side of [-1, 1]) {
+    for (let i = 0; i < 12; i++) {
+      const seg = new THREE.Group();
+      const wall = new THREE.Mesh(new THREE.BoxGeometry(1, 24, 30), bcWall);
+      wall.position.y = 12;
+      const trim = new THREE.Mesh(new THREE.BoxGeometry(1.15, 1.4, 30), bcTrim);
+      trim.position.y = 0.7;
+      seg.add(wall, trim);
+      seg.position.set(side * 15, 0, 5 - i * 30);
+      scene.add(seg);
+      backProps.push({ obj: seg, parallax: 1, keepX: true, span: 360 });
+    }
+  }
+  // 천장 (고정) + 형광등 패널 (스크롤)
+  const bcCeil = new THREE.Mesh(new THREE.PlaneGeometry(31, 700),
+    new THREE.MeshLambertMaterial({ color: 0xcdc48e }));
+  bcCeil.rotation.x = Math.PI / 2;
+  bcCeil.position.set(0, 21, -200);
+  scene.add(bcCeil);
+  backProps.push({ obj: bcCeil, parallax: 0, keepX: true });
+  for (let i = 0; i < 14; i++) {
+    const panel = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.12, 7), bcLamp);
+    panel.position.set((i % 2) * 8 - 4, 20.9, 5 - i * 25);
+    scene.add(panel);
+    backProps.push({ obj: panel, parallax: 1, keepX: true, span: 350 });
+  }
+
+  // 가구 배경 소품: 의자 / 책상 / 표지판
+  const makers = [makeChair, makeChair, makeDesk, makeDesk, makeSign];
+  for (let i = 0; i < 12; i++) {
+    const g = makers[Math.floor(Math.random() * makers.length)]();
+    if (Math.random() < 0.4) {
+      // 벽에 박힌 가구 (백룸 특유의 이상함)
+      const side = Math.random() < 0.5 ? -1 : 1;
+      g.position.set(side * rand(13.8, 14.8), rand(1.5, 9), 5 - Math.random() * 340);
+      g.rotation.set(rand(-0.6, 0.6), Math.random() * Math.PI * 2, rand(-0.6, 0.6));
+    } else {
+      // 복도 가장자리 바닥
+      g.position.set(randSideX(10.5, 13.8), 0, 5 - Math.random() * 340);
+      g.rotation.y = Math.random() * Math.PI * 2;
+      if (Math.random() < 0.3) g.rotation.z = rand(-0.25, 0.25);
+    }
+    scene.add(g);
+    backProps.push({ obj: g, parallax: 1, min: 10.5, max: 14.4 });
+  }
+}
+
+// ---------- 깨진 유리창 세계 소품 (폐건물) ----------
+const glassProps = [];
+{
+  const gFrame = new THREE.MeshLambertMaterial({ color: 0xb8bfc4 });
+  const gShard = new THREE.MeshLambertMaterial({ color: 0xaad4e8, transparent: true, opacity: 0.55 });
+  const gRubble = new THREE.MeshLambertMaterial({ color: 0x8a9096, flatShading: true });
+
+  // 서 있는 빈 창틀
+  for (let i = 0; i < 8; i++) {
+    const g = new THREE.Group();
+    const w = rand(2.5, 4), h = rand(3, 5);
+    for (const [bw, bh, bx, by] of [
+      [0.2, h, -w / 2, h / 2], [0.2, h, w / 2, h / 2],
+      [w, 0.2, 0, 0.1], [w, 0.2, 0, h - 0.1],
+    ]) {
+      const b = new THREE.Mesh(new THREE.BoxGeometry(bw, bh, 0.2), gFrame);
+      b.position.set(bx, by, 0);
+      g.add(b);
+    }
+    g.position.set(randSideX(11, 30), 0, 5 - Math.random() * 340);
+    g.rotation.set(0, Math.random() * Math.PI, rand(-0.18, 0.18));
+    scene.add(g);
+    glassProps.push({ obj: g, parallax: 1, min: 11, max: 30 });
+  }
+  // 유리 파편 무더기
+  for (let i = 0; i < 10; i++) {
+    const g = new THREE.Group();
+    const n2 = 3 + Math.floor(Math.random() * 3);
+    for (let j = 0; j < n2; j++) {
+      const h = rand(0.5, 1.1);
+      const s = new THREE.Mesh(new THREE.ConeGeometry(rand(0.25, 0.5), h, 4), gShard);
+      s.position.set(rand(-0.8, 0.8), h / 2, rand(-0.8, 0.8));
+      s.rotation.y = Math.random() * Math.PI;
+      g.add(s);
+    }
+    g.position.set(randSideX(10.5, 28), 0, 5 - Math.random() * 340);
+    scene.add(g);
+    glassProps.push({ obj: g, parallax: 1, min: 10.5, max: 28 });
+  }
+  // 콘크리트 잔해
+  for (let i = 0; i < 6; i++) {
+    const g = new THREE.Group();
+    for (let j = 0; j < 2 + Math.floor(Math.random() * 2); j++) {
+      const b = new THREE.Mesh(new THREE.BoxGeometry(rand(0.8, 1.8), rand(0.5, 1.2), rand(0.8, 1.8)), gRubble);
+      b.position.set(rand(-1, 1), 0.4, rand(-1, 1));
+      b.rotation.y = Math.random() * Math.PI;
+      g.add(b);
+    }
+    g.position.set(randSideX(11, 26), 0, 5 - Math.random() * 340);
+    scene.add(g);
+    glassProps.push({ obj: g, parallax: 1, min: 11, max: 26 });
+  }
+}
+
+// 세계별 소품 표시 전환
+const allProps = sideProps.concat(backProps, glassProps);
+function setWorldProps(type) {
+  // 숲: 유적 빼고 나무·산만 / 신전: 전부
+  for (const p of sideProps)
+    p.obj.visible = type === 'columns' || (type === 'forest' && p.kind !== 'ruin');
+  for (const p of backProps) p.obj.visible = type === 'backroom';
+  for (const p of glassProps) p.obj.visible = type === 'window';
+  for (const cl of clouds) cl.visible = type !== 'backroom';
+}
+
+// ---------- 새 ----------
+const bodyMat  = new THREE.MeshLambertMaterial({ color: 0xffd93b });
+const bellyMat = new THREE.MeshLambertMaterial({ color: 0xfff3d6 });
+const wingMat  = new THREE.MeshLambertMaterial({ color: 0xf0b429 });
+const headMat  = new THREE.MeshLambertMaterial({ color: 0xffd93b });
+const beakMat = new THREE.MeshLambertMaterial({ color: 0xffa726 });
+const eyeMat = new THREE.MeshBasicMaterial({ color: 0x222222 });
+const eyeWhiteMat = new THREE.MeshLambertMaterial({ color: 0xffffff });
+
+// 종류별 체형 파라미터 (전체 크기는 비슷하게, 실루엣으로 구분)
+const SPECIES = {
+  sparrow: { bodyScale: [0.95, 0.9, 1.1],  headR: 0.4,  headPos: [0, 0.26, -0.7],  beakR: 0.11, beakLen: 0.22, tail: 'square', wing: 'round',    wingScale: 0.85, eyeR: 0.07, chest: true },
+  chick:   { bodyScale: [1.0, 1.0, 1.05],  headR: 0,    headPos: null,             beakR: 0.16, beakLen: 0.4,  tail: 'none',   wing: 'round',    wingScale: 0.6,  eyeR: 0.1,  fluff: true },
+  swallow: { bodyScale: [0.8, 0.75, 1.5],  headR: 0.36, headPos: [0, 0.16, -0.82], beakR: 0.11, beakLen: 0.38, tail: 'fork',   wing: 'pointed',  wingScale: 1.0,  eyeR: 0.07 },
+  owl:     { bodyScale: [1.0, 0.95, 1.1],  headR: 0.55, headPos: [0, 0.35, -0.6],  beakR: 0.09, beakLen: 0.22, tail: 'fan',    wing: 'broad',    wingScale: 1.0,  eyeR: 0.14, owlEyes: true, disc: true },
+  eagle:   { bodyScale: [0.95, 0.9, 1.5],  headR: 0.4,  headPos: [0, 0.3, -0.9],   beakR: 0.13, beakLen: 0.42, tail: 'fan',    wing: 'fingered', wingScale: 1.1,  eyeR: 0.08, hook: true, ruff: true },
+};
+
+const bird = new THREE.Group();
+scene.add(bird);
+let wingL, wingR, currentSpecies = null, eggShell = null;
+const eggShellMat = new THREE.MeshLambertMaterial({ color: 0xffffff, transparent: true, opacity: 0.3 });
+
+// 날개 모양 4종 — 어깨 피벗 그룹이라 접기/펴기 회전 가능
+function makeWingGeo(build) {
+  const s = new THREE.Shape();
+  build(s);
+  s.closePath();
+  return new THREE.ExtrudeGeometry(s, { depth: 0.06, bevelEnabled: false });
+}
+const WING_GEOS = {
+  // 제비: 뾰족하게 뒤로 휜 날개
+  pointed: makeWingGeo(s => {
+    s.moveTo(0, 0);
+    s.quadraticCurveTo(0.9, -0.12, 1.95, 0.5);
+    s.lineTo(0.75, 0.78);
+    s.quadraticCurveTo(0.3, 0.58, 0, 0.5);
+  }),
+  // 참새·병아리: 짧고 둥근 날개
+  round: makeWingGeo(s => {
+    s.moveTo(0, 0);
+    s.quadraticCurveTo(0.7, -0.15, 1.25, 0.25);
+    s.quadraticCurveTo(1.4, 0.55, 0.9, 0.75);
+    s.quadraticCurveTo(0.4, 0.8, 0, 0.5);
+  }),
+  // 부엉이: 넓적하고 둥근 날개
+  broad: makeWingGeo(s => {
+    s.moveTo(0, 0);
+    s.quadraticCurveTo(0.8, -0.15, 1.5, 0.3);
+    s.quadraticCurveTo(1.72, 0.68, 1.1, 0.95);
+    s.quadraticCurveTo(0.5, 1.02, 0, 0.6);
+  }),
+  // 독수리: 끝이 손가락 깃털처럼 갈라진 넓은 날개
+  fingered: makeWingGeo(s => {
+    s.moveTo(0, 0);
+    s.lineTo(1.15, -0.05);
+    s.lineTo(1.85, 0.06); s.lineTo(1.5, 0.2);
+    s.lineTo(1.85, 0.32); s.lineTo(1.48, 0.45);
+    s.lineTo(1.82, 0.58); s.lineTo(1.35, 0.7);
+    s.lineTo(0.8, 0.8);
+    s.quadraticCurveTo(0.3, 0.7, 0, 0.5);
+  }),
+};
+function makeWing(mirror, scale, geoName) {
+  const pivot = new THREE.Group();
+  const mesh = new THREE.Mesh(WING_GEOS[geoName], wingMat);
+  mesh.rotation.x = Math.PI / 2;   // 날개를 수평으로 눕힘 (shape y → 뒤쪽 +z)
+  mesh.castShadow = true;
+  pivot.add(mesh);
+  pivot.position.set(mirror ? -0.3 : 0.3, 0.15, -0.3);
+  pivot.scale.set(mirror ? -scale : scale, scale, scale);  // 왼쪽은 거울 대칭
+  bird.add(pivot);
+  return pivot;
+}
+
+function buildBird(species) {
+  currentSpecies = species;
+  bird.clear();
+  const S = SPECIES[species];
+
+  const body = new THREE.Mesh(new THREE.SphereGeometry(0.62, 20, 16), bodyMat);
+  body.scale.set(...S.bodyScale);
+  body.castShadow = true;
+  bird.add(body);
+
+  const belly = new THREE.Mesh(new THREE.SphereGeometry(0.45, 16, 12), bellyMat);
+  if (S.chest) {
+    // 참새: 앞으로 볼록 내민 가슴
+    belly.scale.set(0.95, 0.85, 0.9);
+    belly.position.set(0, -0.16, -0.36);
+  } else {
+    belly.scale.set(0.8, 0.7, S.bodyScale[2] * 0.78);
+    belly.position.set(0, -0.24, -0.22);
+  }
+  bird.add(belly);
+
+  const hasHead = S.headR > 0;
+  if (hasHead) {
+    const head = new THREE.Mesh(new THREE.SphereGeometry(S.headR, 16, 12), headMat);
+    head.position.set(...S.headPos);
+    head.castShadow = true;
+    bird.add(head);
+  }
+  if (S.disc) {
+    // 부엉이: 납작한 얼굴 원반
+    const disc = new THREE.Mesh(new THREE.SphereGeometry(0.45, 16, 12), bellyMat);
+    disc.scale.set(1, 1, 0.35);
+    disc.position.set(0, S.headPos[1], S.headPos[2] - S.headR * 0.55);
+    bird.add(disc);
+  }
+  if (S.ruff) {
+    // 독수리: 흰 목덜미 (머리색이 목까지 이어짐)
+    const ruff = new THREE.Mesh(new THREE.SphereGeometry(0.34, 12, 10), headMat);
+    ruff.position.set(0, 0.22, -0.66);
+    bird.add(ruff);
+  }
+  if (S.fluff) {
+    // 병아리: 머리 위 솜털 뭉치
+    for (const [fx, fy, fz] of [[-0.1, 0.6, -0.05], [0.08, 0.65, 0.02], [0, 0.58, 0.1]]) {
+      const f = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 6), bodyMat);
+      f.position.set(fx, fy, fz);
+      bird.add(f);
+    }
+  }
+
+  // 부리 (독수리는 갈고리 끝 추가)
+  const beakY = hasHead ? S.headPos[1] - 0.04 : 0.05;
+  const beakZ = hasHead
+    ? S.headPos[2] - S.headR - S.beakLen / 2 + 0.08
+    : -(0.62 * S.bodyScale[2]) - S.beakLen / 2 + 0.1;
+  const beak = new THREE.Mesh(new THREE.ConeGeometry(S.beakR, S.beakLen, 8), beakMat);
+  beak.rotation.x = -Math.PI / 2;
+  beak.position.set(0, beakY, beakZ);
+  bird.add(beak);
+  if (S.hook) {
+    const hook = new THREE.Mesh(new THREE.ConeGeometry(S.beakR * 0.55, 0.18, 8), beakMat);
+    hook.rotation.x = Math.PI;
+    hook.position.set(0, beakY - 0.09, beakZ - S.beakLen / 2 + 0.05);
+    bird.add(hook);
+  }
+
+  // 눈 (부엉이는 왕눈 + 귀깃)
+  if (S.owlEyes) {
+    for (const sx of [-1, 1]) {
+      const disc = new THREE.Mesh(new THREE.SphereGeometry(0.16, 10, 8), eyeWhiteMat);
+      disc.position.set(sx * 0.2, S.headPos[1] + 0.06, S.headPos[2] - S.headR + 0.05);
+      bird.add(disc);
+      const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 6), eyeMat);
+      pupil.position.set(sx * 0.2, S.headPos[1] + 0.06, S.headPos[2] - S.headR - 0.04);
+      bird.add(pupil);
+      const tuft = new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.3, 6), headMat);
+      tuft.position.set(sx * 0.3, S.headPos[1] + S.headR + 0.05, S.headPos[2] + 0.1);
+      bird.add(tuft);
+    }
+  } else {
+    const ey = hasHead ? S.headPos[1] + 0.12 : 0.2;
+    const ez = hasHead ? S.headPos[2] - S.headR * 0.6 : -(0.62 * S.bodyScale[2]) * 0.7;
+    for (const sx of [-1, 1]) {
+      const eye = new THREE.Mesh(new THREE.SphereGeometry(S.eyeR, 8, 6), eyeMat);
+      eye.position.set(sx * (hasHead ? S.headR * 0.62 : 0.24), ey, ez);
+      bird.add(eye);
+    }
+  }
+
+  // 꼬리
+  const tailZ = 0.62 * S.bodyScale[2];
+  if (S.tail === 'fork') {
+    // 제비: 길고 깊게 갈라진 꼬리
+    for (const sx of [-1, 1]) {
+      const tail = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.045, 0.95), wingMat);
+      tail.position.set(sx * 0.16, 0.03, tailZ + 0.44);
+      tail.rotation.y = -sx * 0.35;
+      bird.add(tail);
+    }
+  } else if (S.tail === 'fan') {
+    const tail = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.05, 0.6), wingMat);
+    tail.position.set(0, 0.05, tailZ + 0.26);
+    tail.rotation.x = 0.15;
+    bird.add(tail);
+  } else if (S.tail === 'square') {
+    // 참새: 짧은 네모 꼬리
+    const tail = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.05, 0.38), wingMat);
+    tail.position.set(0, 0.06, tailZ + 0.16);
+    tail.rotation.x = 0.1;
+    bird.add(tail);
+  }
+
+  wingR = makeWing(false, S.wingScale, S.wing);
+  wingL = makeWing(true, S.wingScale, S.wing);
+
+  // 병아리 보호막 등 스킬 이펙트용 껍질
+  eggShell = new THREE.Mesh(new THREE.SphereGeometry(1.05, 16, 12), eggShellMat);
+  eggShell.visible = false;
+  bird.add(eggShell);
+}
+
+// ---------- 신전 기둥 ----------
+const marbleMat  = new THREE.MeshLambertMaterial({ color: 0xf2eee3, flatShading: true });
+const marbleDark = new THREE.MeshLambertMaterial({ color: 0xd9d3c2, flatShading: true });
+const glassMat = new THREE.MeshLambertMaterial({ color: 0xaad4e8, transparent: true, opacity: 0.35, side: THREE.DoubleSide });
+const crackMat = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.65 });
+const rimMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.85, side: THREE.DoubleSide });
+const backWallMat = new THREE.MeshLambertMaterial({ color: 0xd3c67a });
+const backTrimMat = new THREE.MeshLambertMaterial({ color: 0xb0a45c });
+const lampMat = new THREE.MeshBasicMaterial({ color: 0xf8f8e6 });
+
+// ---------- 유리창 세계 스타일/날씨 ----------
+let currentGlassStyle = null, glassPhases = [], dynamicGlass = false;
+let flash = 0, lightT = 5;
+const GLASS_ORDER = ['bg-ruin', 'bg-dawn', 'bg-dusk', 'bg-winter', 'bg-nightcity', 'bg-storm'];
+
+// 스테인드글라스 모자이크 텍스처
+const stainedTex = (() => {
+  const c = document.createElement('canvas');
+  c.width = c.height = 256;
+  const g = c.getContext('2d');
+  const cols = ['#e5533f', '#3f6fe5', '#3fb54f', '#e5c33f', '#9a3fe5', '#3fc8d8', '#e58a3f'];
+  const N = 6, s = 256 / N;
+  for (let i = 0; i < N; i++)
+    for (let j = 0; j < N; j++) {
+      g.fillStyle = cols[Math.floor(Math.random() * cols.length)];
+      g.fillRect(i * s, j * s, s, s);
+    }
+  g.strokeStyle = '#2a2430'; g.lineWidth = 7;
+  for (let i = 0; i <= N; i++) {
+    g.beginPath(); g.moveTo(i * s, 0); g.lineTo(i * s, 256); g.stroke();
+    g.beginPath(); g.moveTo(0, i * s); g.lineTo(256, i * s); g.stroke();
+  }
+  const t = new THREE.CanvasTexture(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.repeat.set(0.07, 0.07);
+  return t;
+})();
+
+// 빗줄기 / 눈송이
+const rainObj = (() => {
+  const pos = [];
+  for (let i = 0; i < 250; i++) {
+    const x = rand(-14, 14), y = rand(0, 26), z = rand(-70, 12);
+    pos.push(x, y, z, x, y - 0.9, z);
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  const o = new THREE.LineSegments(geo,
+    new THREE.LineBasicMaterial({ color: 0x9fb8d0, transparent: true, opacity: 0.5 }));
+  o.visible = false;
+  scene.add(o);
+  return o;
+})();
+const snowObj = (() => {
+  const pos = [];
+  for (let i = 0; i < 300; i++) pos.push(rand(-16, 16), rand(0, 26), rand(-70, 12));
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  const o = new THREE.Points(geo,
+    new THREE.PointsMaterial({ color: 0xffffff, size: 0.18, transparent: true, opacity: 0.9 }));
+  o.visible = false;
+  scene.add(o);
+  return o;
+})();
+
+function applyGlassStyle(st) {
+  // 배경(하늘/날씨)만 담당
+  currentGlassStyle = st;
+  scene.background.set(st.sky);
+  scene.fog.color.set(st.sky);
+  scene.fog.near = st.fogNear;
+  scene.fog.far = st.fogFar;
+  drawGround(st.groundA, st.groundB);
+  ambient.intensity = st.amb;
+  sun.intensity = st.sunI;
+  sun.color.set(st.sunC);
+  rainObj.visible = !!st.rain;
+  snowObj.visible = !!st.snow;
+  if (!st.lightning) flash = 0;
+}
+
+function applyGlassPane(p) {
+  // 유리판(색/종류) 담당
+  glassMat.color.set(p.glass);
+  glassMat.opacity = p.opacity ?? 0.35;
+  const wantMap = p.stained ? stainedTex : null;
+  if (glassMat.map !== wantMap) { glassMat.map = wantMap; glassMat.needsUpdate = true; }
+  crackMat.color.set(p.crack);
+  rimMat.color.set(p.rim ?? p.crack);
+}
+const gates = [];
+const COL_R = 1.5;   // 충돌 판정용 기둥 반경
+
+// 길이 len짜리 그리스 기둥: 원점에서 +Y 방향으로 뻗음 (받침 → 몸통 → 기둥머리)
+function makeColumn(len) {
+  const g = new THREE.Group();
+  const shaftLen = len - 1.4;
+
+  const plinth = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.45, 3.2), marbleDark);
+  plinth.position.y = 0.225;
+  const baseDisc = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.55, 0.3, 14), marbleMat);
+  baseDisc.position.y = 0.6;
+
+  // 몸통: 위로 갈수록 좁아지는 14각 기둥, flatShading → 세로 홈 느낌
+  const shaft = new THREE.Mesh(new THREE.CylinderGeometry(1.0, 1.25, shaftLen, 14), marbleMat);
+  shaft.position.y = 0.7 + shaftLen / 2;
+
+  const echinus = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 1.05, 0.35, 14), marbleMat);
+  echinus.position.y = 0.7 + shaftLen + 0.18;
+  const abacus = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.35, 3.2), marbleDark);
+  abacus.position.y = 0.7 + shaftLen + 0.53;
+
+  for (const m of [plinth, baseDisc, shaft, echinus, abacus]) {
+    m.castShadow = true;
+    g.add(m);
+  }
+  return g;
+}
+
+function disposeObj(root) {
+  root.traverse(o => { if (o.geometry) o.geometry.dispose(); });
+  scene.remove(root);
+}
+
+function createGate(z) {
+  const gateType = worldItem().gate;
+  if (gateType === 'window') createWindowGate(z);
+  else if (gateType === 'backroom') createBackroomGate(z);
+  else if (gateType === 'forest') createForestGate(z);
+  else createColumnGate(z);
+  // 다음 게이트와의 중간 지점에 별 (75% 확률)
+  if (Math.random() < 0.75) createStar(z - GATE_SPACING / 2);
+}
+
+// ---------- 숲 게이트: 나뭇가지 사이를 통과 + 통나무 틀 ----------
+const barkMat = new THREE.MeshLambertMaterial({ color: 0x7a5230 });
+const leafMat = new THREE.MeshLambertMaterial({ color: 0x3fa34d, flatShading: true });
+
+// 잎뭉치: 나무 품종에 따라 둥근 잎 또는 침엽(원뿔)
+function makeLeaf(r) {
+  const cone = worldItem().leafShape === 'cone';
+  const m = cone
+    ? new THREE.Mesh(new THREE.ConeGeometry(r * 0.85, r * 2.1, 7), leafMat)
+    : new THREE.Mesh(new THREE.SphereGeometry(r, 8, 6), leafMat);
+  m.castShadow = true;
+  return m;
+}
+
+// 길이 len짜리 나뭇가지: 원점에서 +Y로, 끝에 잎뭉치
+function makeBranch(len) {
+  const g = new THREE.Group();
+  const branch = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.6, len, 8), barkMat);
+  branch.position.y = len / 2;
+  branch.castShadow = true;
+  g.add(branch);
+  const n = 2 + Math.floor(Math.random() * 2);
+  for (let i = 0; i < n; i++) {
+    const leaf = makeLeaf(rand(0.8, 1.3));
+    leaf.position.set(rand(-0.6, 0.6), len - rand(0, 1.5), rand(-0.6, 0.6));
+    g.add(leaf);
+  }
+  const twig = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.2, len * 0.45, 6), barkMat);
+  twig.rotation.z = rand(0.5, 0.9) * (Math.random() < 0.5 ? 1 : -1);
+  twig.position.y = len * rand(0.4, 0.7);
+  g.add(twig);
+  return g;
+}
+
+// 높이 h짜리 덤불: 잎뭉치를 줄기 위로 쌓음
+function makeBush(h) {
+  const g = new THREE.Group();
+  const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.35, h * 0.8, 6), barkMat);
+  stem.position.y = h * 0.4;
+  g.add(stem);
+  let y = 0.6;
+  while (y < h - 0.4) {
+    const r = rand(0.9, 1.4) * (1 - (y / (h + 2)) * 0.4);
+    const leaf = makeLeaf(r);
+    leaf.position.set(rand(-0.3, 0.3), y, rand(-0.3, 0.3));
+    g.add(leaf);
+    y += r * 1.1;
+  }
+  return g;
+}
+
+function createForestGate(z) {
+  const group = new THREE.Group();
+  const cols = [];
+  const BR = 1.2;
+
+  {
+    // 바닥: 덤불
+    const x = rand(-HALF_W + 1.6, HALF_W - 1.6), h = rand(4, 12);
+    const p = makeBush(h);
+    p.position.set(x, 0, 0);
+    group.add(p);
+    cols.push({ minX: x - BR, maxX: x + BR, minY: 0, maxY: h });
+  }
+  {
+    // 천장: 늘어진 가지 (화면 밖 나무에서 이어진 것처럼 위로 연장)
+    const x = rand(-HALF_W + 1.6, HALF_W - 1.6), h = rand(4, 12);
+    const p = makeBranch(h + 2.5);
+    p.rotation.z = Math.PI;
+    p.position.set(x, CEIL + 2.5, 0);
+    group.add(p);
+    cols.push({ minX: x - BR, maxX: x + BR, minY: CEIL - h, maxY: CEIL });
+  }
+  {
+    // 왼쪽: 옆에서 뻗어온 나뭇가지
+    const y = rand(2.2, CEIL - 2.2), len = rand(4, 12);
+    const p = makeBranch(len + 2.5);
+    p.rotation.z = -Math.PI / 2;
+    p.position.set(-HALF_W - 2.5, y, 0);
+    group.add(p);
+    cols.push({ minX: -HALF_W, maxX: -HALF_W + len, minY: y - BR, maxY: y + BR });
+  }
+  {
+    // 오른쪽
+    const y = rand(2.2, CEIL - 2.2), len = rand(4, 12);
+    const p = makeBranch(len + 2.5);
+    p.rotation.z = Math.PI / 2;
+    p.position.set(HALF_W + 2.5, y, 0);
+    group.add(p);
+    cols.push({ minX: HALF_W - len, maxX: HALF_W, minY: y - BR, maxY: y + BR });
+  }
+
+  // 통나무 틀 — 가장자리에 붙어서 지나가는 캠핑 방지
+  {
+    const mL = rand(1.0, 2.6), mR = rand(1.0, 2.6), mB = rand(1.0, 2.6), mT = rand(1.0, 2.6);
+    const logs = [
+      { r: mL / 2, len: CEIL, x: -HALF_W + mL / 2, y: CEIL / 2, rot: 0,
+        box: { minX: -HALF_W, maxX: -HALF_W + mL, minY: 0, maxY: CEIL } },
+      { r: mR / 2, len: CEIL, x: HALF_W - mR / 2, y: CEIL / 2, rot: 0,
+        box: { minX: HALF_W - mR, maxX: HALF_W, minY: 0, maxY: CEIL } },
+      { r: mB / 2, len: HALF_W * 2, x: 0, y: mB / 2, rot: Math.PI / 2,
+        box: { minX: -HALF_W, maxX: HALF_W, minY: 0, maxY: mB } },
+      { r: mT / 2, len: HALF_W * 2, x: 0, y: CEIL - mT / 2, rot: Math.PI / 2,
+        box: { minX: -HALF_W, maxX: HALF_W, minY: CEIL - mT, maxY: CEIL } },
+    ];
+    for (const L of logs) {
+      const log = new THREE.Mesh(new THREE.CylinderGeometry(L.r, L.r, L.len + L.r * 2, 10), barkMat);
+      log.rotation.z = L.rot;
+      log.position.set(L.x, L.y, 0);
+      log.castShadow = true;
+      group.add(log);
+      cols.push(L.box);
+      // 통나무에 낀 잎뭉치
+      if (Math.random() < 0.8) {
+        const leaf = makeLeaf(rand(0.5, 0.9));
+        const along = rand(-0.35, 0.35) * L.len;
+        leaf.position.set(L.rot ? L.x + along : L.x, L.rot ? L.y + L.r * 0.6 : L.y + along, rand(-0.3, 0.3));
+        group.add(leaf);
+      }
+    }
+  }
+
+  group.position.z = z;
+  scene.add(group);
+  gates.push({ group, cols, hole: null, passed: false });
+}
+
+// 깨진 유리창 게이트: 네 면에서 대형 유리 파편이 하나씩 튀어나옴 (나뭇가지와 같은 규격)
+function createWindowGate(z) {
+  const group = new THREE.Group();
+  const cols = [];
+  const BR = 1.2;
+
+  // 길이 len짜리 뾰족한 파편: 원점에서 +Y 방향, 밝은 윤곽선 포함
+  function makeShardSpike(len) {
+    const w = 2.8;
+    const pts = [
+      [-w / 2, 0],
+      [-w * 0.18, len * rand(0.55, 0.75)],
+      [-w * 0.04, len * rand(0.38, 0.52)],
+      [w * rand(0.02, 0.12), len],
+      [w * 0.24, len * rand(0.45, 0.62)],
+      [w / 2, 0],
+    ];
+    const s = new THREE.Shape();
+    s.moveTo(pts[0][0], pts[0][1]);
+    for (let i = 1; i < pts.length; i++) s.lineTo(pts[i][0], pts[i][1]);
+    s.closePath();
+    const g = new THREE.Group();
+    g.add(new THREE.Mesh(new THREE.ShapeGeometry(s), glassMat));
+    const lp = [];
+    for (const [px, py] of pts) lp.push(px, py, 0);
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(lp, 3));
+    g.add(new THREE.Line(geo, crackMat));
+    return g;
+  }
+
+  {
+    // 바닥에서 솟은 파편
+    const x = rand(-HALF_W + 1.6, HALF_W - 1.6), h = rand(4, 12);
+    const p = makeShardSpike(h);
+    p.position.set(x, 0, 0);
+    group.add(p);
+    cols.push({ minX: x - BR, maxX: x + BR, minY: 0, maxY: h });
+  }
+  {
+    // 천장에 매달린 파편
+    const x = rand(-HALF_W + 1.6, HALF_W - 1.6), h = rand(4, 12);
+    const p = makeShardSpike(h);
+    p.rotation.z = Math.PI;
+    p.position.set(x, CEIL, 0);
+    group.add(p);
+    cols.push({ minX: x - BR, maxX: x + BR, minY: CEIL - h, maxY: CEIL });
+  }
+  {
+    // 왼쪽 창틀에 남은 파편
+    const y = rand(2.2, CEIL - 2.2), len = rand(4, 12);
+    const p = makeShardSpike(len);
+    p.rotation.z = -Math.PI / 2;
+    p.position.set(-HALF_W, y, 0);
+    group.add(p);
+    cols.push({ minX: -HALF_W, maxX: -HALF_W + len, minY: y - BR, maxY: y + BR });
+  }
+  {
+    // 오른쪽
+    const y = rand(2.2, CEIL - 2.2), len = rand(4, 12);
+    const p = makeShardSpike(len);
+    p.rotation.z = Math.PI / 2;
+    p.position.set(HALF_W, y, 0);
+    group.add(p);
+    cols.push({ minX: HALF_W - len, maxX: HALF_W, minY: y - BR, maxY: y + BR });
+  }
+
+  // 창틀 (충돌 있음 — 가장자리 캠핑 방지)
+  for (const [w, h, x, y] of [
+    [0.9, CEIL, -HALF_W + 0.45, CEIL / 2], [0.9, CEIL, HALF_W - 0.45, CEIL / 2],
+    [HALF_W * 2, 0.9, 0, 0.45], [HALF_W * 2, 0.9, 0, CEIL - 0.45],
+  ]) {
+    const b = new THREE.Mesh(new THREE.BoxGeometry(w, h, 0.9), marbleMat);
+    b.position.set(x, y, 0);
+    b.castShadow = true;
+    group.add(b);
+  }
+  cols.push({ minX: -HALF_W, maxX: -HALF_W + 0.9, minY: 0, maxY: CEIL });
+  cols.push({ minX: HALF_W - 0.9, maxX: HALF_W, minY: 0, maxY: CEIL });
+  cols.push({ minX: -HALF_W, maxX: HALF_W, minY: 0, maxY: 0.9 });
+  cols.push({ minX: -HALF_W, maxX: HALF_W, minY: CEIL - 0.9, maxY: CEIL });
+
+  group.position.z = z;
+  scene.add(group);
+  gates.push({ group, cols, hole: null, passed: false });
+}
+
+// 백룸 게이트: 사방에서 튀어나온 거대 가구 더미 + 몰딩 테두리 + 형광등
+function createBackroomGate(z) {
+  const group = new THREE.Group();
+  const cols = [];
+  const BR = 1.3;   // 가구 더미 충돌 절반 폭
+
+  {
+    // 바닥: 서 있는 랜덤 가구 (책장/캐비닛/램프/표지판/가구 탑)
+    const x = rand(-HALF_W + 1.8, HALF_W - 1.8), h = rand(4, 12);
+    const p = makeObstacle(h);
+    p.position.set(x, 0, 0);
+    group.add(p);
+    cols.push({ minX: x - BR, maxX: x + BR, minY: 0, maxY: h });
+  }
+  {
+    // 천장: 거꾸로 매달린 랜덤 가구
+    const x = rand(-HALF_W + 1.8, HALF_W - 1.8), h = rand(4, 12);
+    const p = makeObstacle(h);
+    p.rotation.z = Math.PI;
+    p.position.set(x, CEIL, 0);
+    group.add(p);
+    cols.push({ minX: x - BR, maxX: x + BR, minY: CEIL - h, maxY: CEIL });
+  }
+  {
+    // 왼벽: 옆으로 튀어나온 랜덤 가구
+    const y = rand(2.2, CEIL - 2.2), len = rand(4, 12);
+    const p = makeObstacle(len);
+    p.rotation.z = -Math.PI / 2;
+    p.position.set(-HALF_W, y, 0);
+    group.add(p);
+    cols.push({ minX: -HALF_W, maxX: -HALF_W + len, minY: y - BR, maxY: y + BR });
+  }
+  {
+    // 오른벽
+    const y = rand(2.2, CEIL - 2.2), len = rand(4, 12);
+    const p = makeObstacle(len);
+    p.rotation.z = Math.PI / 2;
+    p.position.set(HALF_W, y, 0);
+    group.add(p);
+    cols.push({ minX: HALF_W - len, maxX: HALF_W, minY: y - BR, maxY: y + BR });
+  }
+
+  // 몰딩 테두리 (캠핑 방지)
+  const mL = rand(1.0, 2.4), mR = rand(1.0, 2.4), mB = rand(1.0, 2.4), mT = rand(1.0, 2.4);
+  for (const [w, h, x, y] of [
+    [mL, CEIL, -HALF_W + mL / 2, CEIL / 2], [mR, CEIL, HALF_W - mR / 2, CEIL / 2],
+    [HALF_W * 2, mB, 0, mB / 2], [HALF_W * 2, mT, 0, CEIL - mT / 2],
+  ]) {
+    const b = new THREE.Mesh(new THREE.BoxGeometry(w, h, 1.6), backTrimMat);
+    b.position.set(x, y, 0);
+    b.castShadow = true;
+    group.add(b);
+  }
+  cols.push({ minX: -HALF_W, maxX: -HALF_W + mL, minY: 0, maxY: CEIL });
+  cols.push({ minX: HALF_W - mR, maxX: HALF_W, minY: 0, maxY: CEIL });
+  cols.push({ minX: -HALF_W, maxX: HALF_W, minY: 0, maxY: mB });
+  cols.push({ minX: -HALF_W, maxX: HALF_W, minY: CEIL - mT, maxY: CEIL });
+
+  // 천장 몰딩에 박힌 형광등
+  const lamp = new THREE.Mesh(new THREE.BoxGeometry(4, 0.18, 0.9), lampMat);
+  lamp.position.set(rand(-4, 4), CEIL - mT + 0.1, 0);
+  group.add(lamp);
+
+  group.position.z = z;
+  scene.add(group);
+  gates.push({ group, cols, hole: null, passed: false });
+}
+
+function createColumnGate(z) {
+  const group = new THREE.Group();
+  const cols = [];   // 충돌용 AABB
+
+  // 남쪽(바닥) / 북쪽(천장)
+  {
+    const x = rand(-HALF_W + 1.8, HALF_W - 1.8), h = rand(4, 12);
+    const c = makeColumn(h);
+    c.position.set(x, 0, 0);
+    group.add(c);
+    cols.push({ minX: x - COL_R, maxX: x + COL_R, minY: 0, maxY: h });
+  }
+  {
+    const x = rand(-HALF_W + 1.8, HALF_W - 1.8), h = rand(4, 12);
+    const c = makeColumn(h);
+    c.rotation.z = Math.PI;
+    c.position.set(x, CEIL, 0);
+    group.add(c);
+    cols.push({ minX: x - COL_R, maxX: x + COL_R, minY: CEIL - h, maxY: CEIL });
+  }
+  // 서쪽(왼벽) / 동쪽(오른벽)
+  {
+    const y = rand(2.2, CEIL - 2.2), len = rand(4, 12);
+    const c = makeColumn(len);
+    c.rotation.z = -Math.PI / 2;
+    c.position.set(-HALF_W, y, 0);
+    group.add(c);
+    cols.push({ minX: -HALF_W, maxX: -HALF_W + len, minY: y - COL_R, maxY: y + COL_R });
+  }
+  {
+    const y = rand(2.2, CEIL - 2.2), len = rand(4, 12);
+    const c = makeColumn(len);
+    c.rotation.z = Math.PI / 2;
+    c.position.set(HALF_W, y, 0);
+    group.add(c);
+    cols.push({ minX: HALF_W - len, maxX: HALF_W, minY: y - COL_R, maxY: y + COL_R });
+  }
+
+  // 네 면 끝을 막는 테두리 — 그리스 신전 파사드 (캠핑 방지)
+  {
+    const frameT = 1.6;
+    const mL = rand(1.0, 2.8), mR = rand(1.0, 2.8), mB = rand(1.0, 2.8), mT = rand(1.0, 2.8);
+
+    // 좌우: 사각 필라스터 (받침 + 몸통 + 기둥머리)
+    for (const [m, side] of [[mL, -1], [mR, 1]]) {
+      const innerX = side * (HALF_W - m);         // 놀이 공간 쪽 면
+      const shaft = new THREE.Mesh(new THREE.BoxGeometry(m, CEIL, frameT), marbleMat);
+      shaft.position.set(side * (HALF_W - m / 2), CEIL / 2, 0);
+      shaft.castShadow = true;
+      group.add(shaft);
+      // 받침/머리 장식: 안쪽 면은 몸통과 맞추고 바깥쪽으로만 두껍게
+      const trimW = m + 0.5;
+      const trimX = innerX + side * trimW / 2;
+      const base = new THREE.Mesh(new THREE.BoxGeometry(trimW, 1.0, frameT + 0.7), marbleDark);
+      base.position.set(trimX, 0.5, 0);
+      const cap = new THREE.Mesh(new THREE.BoxGeometry(trimW, 0.9, frameT + 0.7), marbleDark);
+      cap.position.set(trimX, CEIL - mT - 0.45, 0);
+      group.add(base, cap);
+    }
+    cols.push({ minX: -HALF_W, maxX: -HALF_W + mL, minY: 0, maxY: CEIL });
+    cols.push({ minX: HALF_W - mR, maxX: HALF_W, minY: 0, maxY: CEIL });
+
+    // 아래: 계단식 기단 (스타일로베이트)
+    const stepLow = new THREE.Mesh(new THREE.BoxGeometry(HALF_W * 2, mB * 0.55, frameT + 1.0), marbleDark);
+    stepLow.position.set(0, mB * 0.275, 0);
+    const stepHigh = new THREE.Mesh(new THREE.BoxGeometry(HALF_W * 2, mB * 0.45, frameT + 0.4), marbleMat);
+    stepHigh.position.set(0, mB * 0.775, 0);
+    stepHigh.castShadow = true;
+    group.add(stepLow, stepHigh);
+    cols.push({ minX: -HALF_W, maxX: HALF_W, minY: 0, maxY: mB });
+
+    // 위: 상인방 (트리글리프 무늬) + 삼각 페디먼트
+    const architrave = new THREE.Mesh(new THREE.BoxGeometry(HALF_W * 2, mT, frameT), marbleMat);
+    architrave.position.set(0, CEIL - mT / 2, 0);
+    architrave.castShadow = true;
+    group.add(architrave);
+    for (let tx = -8; tx <= 8; tx += 2.2) {
+      const tri = new THREE.Mesh(new THREE.BoxGeometry(0.6, Math.min(mT * 0.7, 1.2), 0.3), marbleDark);
+      tri.position.set(tx, CEIL - mT / 2, frameT / 2 + 0.15);
+      group.add(tri);
+    }
+    const pedShape = new THREE.Shape();
+    pedShape.moveTo(-HALF_W - 0.6, 0);
+    pedShape.lineTo(HALF_W + 0.6, 0);
+    pedShape.lineTo(0, 2.6);
+    pedShape.closePath();
+    const pediment = new THREE.Mesh(
+      new THREE.ExtrudeGeometry(pedShape, { depth: frameT, bevelEnabled: false }), marbleMat);
+    pediment.position.set(0, CEIL, -frameT / 2);
+    pediment.castShadow = true;
+    group.add(pediment);
+    cols.push({ minX: -HALF_W, maxX: HALF_W, minY: CEIL - mT, maxY: CEIL });
+  }
+
+  group.position.z = z;
+  scene.add(group);
+  gates.push({ group, cols, hole: null, passed: false });
+}
+
+// ---------- 별 ----------
+const starGeo = (() => {
+  const shape = new THREE.Shape();
+  for (let i = 0; i < 10; i++) {
+    const r = i % 2 === 0 ? 0.85 : 0.38;
+    const a = (i / 10) * Math.PI * 2 - Math.PI / 2;
+    const x = Math.cos(a) * r, y = Math.sin(a) * r;
+    i === 0 ? shape.moveTo(x, y) : shape.lineTo(x, y);
+  }
+  shape.closePath();
+  return new THREE.ExtrudeGeometry(shape, { depth: 0.25, bevelEnabled: true, bevelSize: 0.06, bevelThickness: 0.06 });
+})();
+const starMat = new THREE.MeshLambertMaterial({ color: 0xffd93b, emissive: 0x8a6d00 });
+const stars = [];
+
+function createStar(z) {
+  const m = new THREE.Mesh(starGeo, starMat);
+  m.position.set((Math.random() - 0.5) * 14, 2.5 + Math.random() * 13, z);
+  scene.add(m);
+  stars.push(m);
+}
+
+// ---------- 꾸미기 적용 ----------
+function applyEquipped() {
+  const b = itemById(save.equipped.bird);
+  if (currentSpecies !== b.species) buildBird(b.species);
+  const vid = save.birdColor[b.species] ?? 'natural';
+  const v = COLOR_VARIANTS.find(c => c.id === vid);
+  const col = (v && v.body) ? v : b;   // '기본'은 그 새의 자연색
+  bodyMat.color.set(col.body); bellyMat.color.set(col.belly); wingMat.color.set(col.wing);
+  headMat.color.set(col.head ?? col.body);
+  beakMat.color.set(b.beak);           // 부리는 종 고유색 유지
+
+  const m = worldItem();
+  scene.background.set(m.sky);
+  scene.fog.color.set(m.sky);
+  drawGround(m.groundA, m.groundB);
+  cloudMat.color.set(m.cloud);
+
+  // 배경 소품 + 하늘 + 조명
+  foliageMat.color.set(m.foliage);
+  trunkMat.color.set(m.trunk);
+  mountainMat.color.set(m.mountain);
+  ruinMat.color.set(m.ruin);
+  sunSphere.visible = m.celestial === 'sun';
+  if (m.celestial === 'sun') sunSphere.material.color.set(m.celestialColor);
+  moonSphere.visible = m.celestial === 'moon';
+  planet.visible = m.celestial === 'planet';
+  starField.visible = m.celestial === 'moon' || m.celestial === 'planet';
+  ambient.intensity = m.amb;
+  sun.intensity = m.sunI;
+  sun.color.set(m.sunC);
+  scene.fog.near = m.fogNear ?? 60;
+  scene.fog.far = m.fogFar ?? 210;
+  setWorldProps(m.gate);   // 세계별 소품 전환 (신전/백룸/유리창)
+
+  // 유리창 세계: 배경 + 유리 각각 적용 (다이나믹 배경은 소유한 배경을 순환)
+  if (m.gate === 'window') {
+    glassPhases = GLASS_ORDER.filter(id => save.owned.includes(id)).map(itemById).filter(Boolean);
+    if (!glassPhases.length) glassPhases = [itemById('bg-ruin')];
+    const gb = itemById(save.equipped.glassBg);
+    dynamicGlass = !!(gb && gb.dynamic);
+    applyGlassStyle(dynamicGlass ? glassPhases[0] : (gb && gb.sky != null ? gb : itemById('bg-ruin')));
+    applyGlassPane(itemById(save.equipped.glassPane) ?? itemById('pane-clear'));
+  } else {
+    dynamicGlass = false;
+    currentGlassStyle = null;
+    rainObj.visible = false;
+    snowObj.visible = !!m.snow;   // 겨울 숲: 눈 내림
+    if (glassMat.map) { glassMat.map = null; glassMat.needsUpdate = true; }
+    glassMat.opacity = 0.35;
+  }
+  if (m.barkC) { barkMat.color.set(m.barkC); leafMat.color.set(m.leafC); }   // 숲 나뭇가지 색
+
+  const p = itemById(save.equipped.pillar);
+  marbleMat.color.set(p.colA);
+  marbleDark.color.set(p.colB);
+}
+
+// ---------- 상점 UI ----------
+const walletMain = document.getElementById('walletMain');
+const walletShop = document.getElementById('walletShop');
+const shopScroll = document.getElementById('shopScroll');
+
+function swatchStyle(item) {
+  const hx = n => '#' + n.toString(16).padStart(6, '0');
+  if (item.cat === 'bird')   return `background: linear-gradient(135deg, ${hx(item.body)} 55%, ${hx(item.wing)} 55%)`;
+  if (item.cat === 'map' || item.cat === 'forestStyle')
+    return `background: linear-gradient(180deg, ${hx(item.sky)} 55%, ${hx(item.groundA)} 55%)`;
+  if (item.cat === 'glassBg') {
+    if (item.dynamic) return 'background: linear-gradient(135deg, #f2c9c0, #f59a5c, #3a4450, #101826)';
+    return `background: linear-gradient(180deg, ${hx(item.sky)} 55%, ${hx(item.groundA)} 55%)`;
+  }
+  if (item.cat === 'glassPane')
+    return `background: linear-gradient(135deg, ${hx(item.glass)} 55%, ${hx(item.crack)} 55%)`;
+  return `background: linear-gradient(135deg, ${hx(item.colA)} 55%, ${hx(item.colB)} 55%)`;
+}
+
+function renderShop() {
+  walletMain.textContent = save.wallet;
+  walletShop.textContent = save.wallet;
+  shopScroll.innerHTML = '';
+  for (const sec of SECTIONS) {
+    if (sec.mode && sec.mode !== save.mode) continue;   // 현재 맵의 꾸미기만 표시
+    const h = document.createElement('div');
+    h.className = 'shop-cat';
+    h.textContent = t(sec.labelKey);
+    shopScroll.appendChild(h);
+    const grid = document.createElement('div');
+    grid.className = 'shop-grid';
+    for (const item of ITEMS.filter(sec.filter)) {
+      const cat = item.cat;
+      const owned = save.owned.includes(item.id);
+      const equipped = save.equipped[cat] === item.id;
+      const card = document.createElement('div');
+      card.className = 'card' + (equipped ? ' equipped' : '');
+      const btnLabel = equipped ? t('equipped') : owned ? t('equip') : t('buyPrice', item.price);
+      const btnClass = equipped ? 'equipped-btn' : owned ? 'owned' : (save.wallet >= item.price ? '' : 'locked');
+      const skillLine = item.cat === 'bird'
+        ? `<div class="skill-desc">${SKILLS[item.species].icon} ${skillName(item.species)}</div>` : '';
+      card.innerHTML = `<div class="swatch" style="${swatchStyle(item)}"></div>
+        <div class="name">${nm(item.id)}</div>${skillLine}
+        <button class="${btnClass}">${btnLabel}</button>`;
+      card.querySelector('button').addEventListener('click', () => {
+        if (equipped) return;
+        if (!owned) {
+          if (save.wallet < item.price) return;
+          save.wallet -= item.price;
+          save.owned.push(item.id);
+          SFX.buy();
+        } else SFX.click();
+        save.equipped[cat] = item.id;
+        persist();
+        applyEquipped();
+        renderShop();
+      });
+      // 새 카드: 색상 선택 점들 (소유한 종만)
+      if (cat === 'bird' && owned) {
+        const row = document.createElement('div');
+        row.className = 'color-row';
+        for (const v of COLOR_VARIANTS) {
+          const key = `color-${item.species}-${v.id}`;
+          const cOwned = v.id === 'natural' || save.owned.includes(key);
+          const sel = (save.birdColor[item.species] ?? 'natural') === v.id;
+          const dot = document.createElement('button');
+          dot.className = 'dot' + (sel ? ' sel' : '') + (cOwned ? '' : ' locked');
+          dot.style.background = '#' + (v.body ?? item.body).toString(16).padStart(6, '0');
+          dot.textContent = cOwned ? '' : v.price;
+          dot.title = nm(v.id) + (cOwned ? '' : ` (⭐${v.price})`);
+          dot.addEventListener('click', ev => {
+            ev.stopPropagation();
+            if (!cOwned) {
+              if (save.wallet < v.price) return;
+              save.wallet -= v.price;
+              save.owned.push(key);
+              SFX.buy();
+            } else SFX.click();
+            save.birdColor[item.species] = v.id;
+            save.equipped.bird = item.id;   // 색을 고르면 그 새로 장착
+            persist();
+            applyEquipped();
+            renderShop();
+          });
+          row.appendChild(dot);
+        }
+        card.appendChild(row);
+      }
+      grid.appendChild(card);
+    }
+    shopScroll.appendChild(grid);
+  }
+}
+
+// ---------- 효과음 (Web Audio 합성, 외부 파일 없음) ----------
+let audioCtx = null;
+let sfxOn = (localStorage.getItem('flappy3d-sfx') ?? '1') === '1';
+function ac() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+function tone({ freq = 440, freq2, dur = 0.15, type = 'sine', vol = 0.3, delay = 0 }) {
+  if (!sfxOn) return;
+  const ctx = ac();
+  const t0 = ctx.currentTime + delay;
+  const o = ctx.createOscillator(), g = ctx.createGain();
+  o.type = type;
+  o.frequency.setValueAtTime(freq, t0);
+  if (freq2) o.frequency.exponentialRampToValueAtTime(freq2, t0 + dur);
+  g.gain.setValueAtTime(vol, t0);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  o.connect(g).connect(ctx.destination);
+  o.start(t0);
+  o.stop(t0 + dur + 0.02);
+}
+function noiseBurst({ dur = 0.3, vol = 0.3, delay = 0, lp = 1000 }) {
+  if (!sfxOn) return;
+  const ctx = ac();
+  const t0 = ctx.currentTime + delay;
+  const len = Math.ceil(ctx.sampleRate * dur);
+  const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len);
+  const src = ctx.createBufferSource();
+  src.buffer = buf;
+  const f = ctx.createBiquadFilter();
+  f.type = 'lowpass'; f.frequency.value = lp;
+  const g = ctx.createGain();
+  g.gain.value = vol;
+  src.connect(f).connect(g).connect(ctx.destination);
+  src.start(t0);
+}
+const SFX = {
+  flap:  () => tone({ freq: 500, freq2: 900, dur: 0.09, type: 'triangle', vol: 0.18 }),
+  score: () => { tone({ freq: 880, dur: 0.08, type: 'square', vol: 0.14 }); tone({ freq: 1320, dur: 0.12, type: 'square', vol: 0.14, delay: 0.08 }); },
+  star:  () => { tone({ freq: 1200, dur: 0.07, vol: 0.2 }); tone({ freq: 1600, dur: 0.07, delay: 0.06, vol: 0.2 }); tone({ freq: 2100, dur: 0.12, delay: 0.12, vol: 0.2 }); },
+  hit:   () => { noiseBurst({ dur: 0.25, vol: 0.5, lp: 800 }); tone({ freq: 220, freq2: 60, dur: 0.3, type: 'sawtooth', vol: 0.3 }); },
+  over:  () => [523, 392, 311, 262].forEach((f, i) => tone({ freq: f, dur: 0.18, delay: i * 0.13, type: 'triangle', vol: 0.22 })),
+  revive:() => [440, 554, 659, 880].forEach((f, i) => tone({ freq: f, dur: 0.12, delay: i * 0.09, type: 'triangle', vol: 0.25 })),
+  buy:   () => { tone({ freq: 660, dur: 0.08, type: 'square', vol: 0.2 }); tone({ freq: 990, dur: 0.15, delay: 0.08, type: 'square', vol: 0.2 }); },
+  click: () => tone({ freq: 700, dur: 0.05, type: 'square', vol: 0.12 }),
+  skill: () => tone({ freq: 700, freq2: 1500, dur: 0.2, type: 'square', vol: 0.2 }),
+  boom: () => { noiseBurst({ dur: 0.45, vol: 0.5, lp: 700 }); tone({ freq: 300, freq2: 90, dur: 0.35, type: 'sawtooth', vol: 0.25 }); },
+  thunder: () => noiseBurst({ dur: 0.9, vol: 0.4, lp: 400, delay: 0.08 }),
+};
+// (효과음 토글은 설정 메뉴로 이동됨)
+
+// ---------- 게임 상태 ----------
+const scoreEl = document.getElementById('score');
+const runStarsEl = document.getElementById('runStars');
+const startPanel = document.getElementById('startPanel');
+const overPanel = document.getElementById('overPanel');
+const shopPanel = document.getElementById('shopPanel');
+const finalScoreEl = document.getElementById('finalScore');
+const bestScoreEl = document.getElementById('bestScore');
+const earnedStarsEl = document.getElementById('earnedStars');
+const revivePanel = document.getElementById('revivePanel');
+const adReviveBtn = document.getElementById('adReviveBtn');
+const starReviveBtn = document.getElementById('starReviveBtn');
+
+let state = 'ready';   // ready | playing | revive | over
+let shopOpen = false;
+let vy = 0, score = 0, speed = 26, playTime = 0, runStars = 0;
+let flapT = 99;                 // 마지막 날갯짓 후 경과 시간 (99 = 접힌 상태)
+const FLAP_DUR = 0.32;          // 한 번 퍼덕이는 시간
+let wingSpread = 1, wingStroke = 0;   // 날개 상태 (부드러운 전환용)
+// 애드센스 심사 중에는 false 권장(가짜 광고 화면이 노출되지 않게). 광고 승인 후 true로.
+const ADS_ENABLED = false;      // true면 '광고 보고 부활', false면 '무료 부활(1회)'
+const REVIVE_COST = 20;         // 별 부활 기본 비용 (쓸 때마다 2배)
+let starReviveCost = REVIVE_COST;
+let adReviveUsed = false;       // 광고 부활은 게임당 1회
+let adPlaying = false;
+let grace = 0;                  // 부활 직후 무적 시간(초)
+
+// ---------- 새 고유 스킬 ----------
+const SKILLS = {
+  chick:   { icon: '🥚', name: '알껍질 보호막', desc: '3초간 충돌 1회 무효',      cd: 15 },
+  sparrow: { icon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><path d="M4 4l5.5 5.5M9.5 5.5v4h-4"/><path d="M20 4l-5.5 5.5M14.5 5.5v4h4"/><path d="M4 20l5.5-5.5M5.5 14.5h4v4"/><path d="M20 20l-5.5-5.5M18.5 14.5h-4v4"/></svg>', name: '콩알 변신', desc: '3초간 작아짐', cd: 10 },
+  swallow: { icon: '🧲', name: '날쌘 사냥',     desc: '4초간 별을 끌어당김',       cd: 12 },
+  owl:     { icon: '⏳', name: '찰나의 눈',     desc: '3초간 세상이 느려짐',       cd: 12 },
+  eagle:   { icon: '💥', name: '제왕의 위엄',   desc: '앞 장애물 2칸 제거',        cd: 15 },
+};
+let skillCd = 0, smallT = 0, slowT = 0, magnetT = 0, shieldOn = false, shieldT = 0;
+let lastCdShown = -1;
+const skillBtnEl = document.getElementById('skillBtn');
+const skillIconEl = document.getElementById('skillIcon');
+const skillCdTxt = document.getElementById('skillCdTxt');
+
+function useSkill() {
+  if (state !== 'playing' || skillCd > 0) return;
+  const sk = SKILLS[currentSpecies];
+  if (!sk) return;
+  skillCd = sk.cd;
+  if (currentSpecies === 'sparrow') smallT = 3;
+  else if (currentSpecies === 'swallow') magnetT = 4;
+  else if (currentSpecies === 'owl') slowT = 3;
+  else if (currentSpecies === 'eagle') { clearGatesAhead(2); SFX.boom(); }
+  else if (currentSpecies === 'chick') { shieldOn = true; shieldT = 3; eggShell.visible = true; }
+  SFX.skill();
+  vib(30);
+}
+
+// 독수리: 앞쪽 게이트 n칸의 장애물 제거 (자리는 남겨서 점수는 그대로)
+function clearGatesAhead(n) {
+  const ahead = gates.filter(g => g.group.position.z < -GATE_DEPTH)
+    .sort((a, b) => b.group.position.z - a.group.position.z)
+    .slice(0, n);
+  for (const g of ahead) {
+    const z = g.group.position.z;
+    disposeObj(g.group);
+    const empty = new THREE.Group();
+    empty.position.z = z;
+    scene.add(empty);
+    g.group = empty;
+    g.cols = [];
+    g.hole = null;
+  }
+}
+skillBtnEl.addEventListener('pointerdown', e => { e.stopPropagation(); useSkill(); });
+
+// 모바일 조작: 버튼(◀▶) / 좌우 분할 터치 / 기울기 (설정에서 선택)
+const touchControlsEl = document.getElementById('touchControls');
+const isTouchDevice = matchMedia('(pointer: coarse)').matches;
+let ctrlScheme = localStorage.getItem('wingdodge-ctrl') || (isTouchDevice ? 'buttons' : 'split');
+let steerX = 0;                       // 아날로그 좌우 입력 (-1..1): 터치/기울기
+let steerId = null, steerStartX = 0;
+// ◀▶ 버튼 (buttons 모드에서만 표시)
+for (const [id, code] of [['moveLBtn', 'ArrowLeft'], ['moveRBtn', 'ArrowRight']]) {
+  const b = document.getElementById(id);
+  b.addEventListener('pointerdown', e => { e.stopPropagation(); e.preventDefault(); keys[code] = true; });
+  for (const ev of ['pointerup', 'pointerleave', 'pointercancel'])
+    b.addEventListener(ev, () => { keys[code] = false; });
+}
+const showTouchButtons = on => touchControlsEl.classList.toggle('hidden', !(on && isTouchDevice && ctrlScheme === 'buttons'));
+
+// 폰은 가로 모드 권장 — 세로로 들면 안내 오버레이
+const rotateHint = document.getElementById('rotateHint');
+let portraitOk = sessionStorage.getItem('wingdodge-portrait') === '1';   // '세로로 하기' 선택 시
+function checkOrient() {
+  rotateHint.classList.toggle('hidden', portraitOk || !(isTouchDevice && innerHeight > innerWidth));
+}
+document.getElementById('rotateSkipBtn').addEventListener('click', e => {
+  e.stopPropagation();
+  portraitOk = true;
+  sessionStorage.setItem('wingdodge-portrait', '1');
+  checkOrient();
+});
+addEventListener('resize', checkOrient);
+addEventListener('orientationchange', checkOrient);
+checkOrient();
+
+// 기울기 조작 (세로모드 기준 gamma = 좌우 기울기)
+function onTilt(e) {
+  if (ctrlScheme !== 'tilt' || state !== 'playing') return;
+  const g = e.gamma || 0, dead = 4;
+  const v = Math.abs(g) < dead ? 0 : g - Math.sign(g) * dead;
+  steerX = THREE.MathUtils.clamp(v / 20, -1, 1);
+}
+let tiltOn = false;
+function enableTilt() {
+  if (tiltOn) return;
+  const add = () => { window.addEventListener('deviceorientation', onTilt); tiltOn = true; };
+  if (typeof DeviceOrientationEvent !== 'undefined' &&
+      typeof DeviceOrientationEvent.requestPermission === 'function') {
+    DeviceOrientationEvent.requestPermission().then(p => { if (p === 'granted') add(); }).catch(() => {});
+  } else add();
+}
+const keys = {};
+let best = +(localStorage.getItem('flappy3d-best') || 0);
+
+const GRAVITY = -34;
+const FLAP = 13.5;
+const SIDE_SPEED = 11;
+const BASE_SPEED = 26, MAX_SPEED = 70, ACCEL = 0.8;   // 모든 맵 공통, 점점 빨라짐
+
+function rebuildGates() {
+  for (const g of gates) disposeObj(g.group);
+  gates.length = 0;
+  for (const s of stars) scene.remove(s);
+  stars.length = 0;
+  for (let i = 0; i < 6; i++) createGate(-60 - i * GATE_SPACING);
+}
+
+function resetGame() {
+  rebuildGates();
+  bird.position.set(0, 9, 0);
+  bird.rotation.set(0, 0, 0);
+  vy = 0; score = 0; speed = BASE_SPEED; playTime = 0; runStars = 0;
+  adReviveUsed = false; grace = 0; starReviveCost = REVIVE_COST;
+  skillCd = 0; smallT = 0; slowT = 0; magnetT = 0; shieldOn = false; shieldT = 0;
+  lastCdShown = -1;
+  bird.scale.setScalar(1);
+  bird.visible = true;
+  if (eggShell) eggShell.visible = false;
+  scoreEl.textContent = '0';
+  runStarsEl.textContent = '⭐ 0';
+}
+
+function startGame() {
+  previewModeId = null;   // 게임은 확정된 모드로
+  applyEquipped();        // 다이나믹 날씨 1단계로 초기화
+  resetGame();
+  state = 'playing';
+  startPanel.classList.add('hidden');
+  overPanel.classList.add('hidden');
+  scoreEl.classList.remove('hidden');
+  runStarsEl.classList.remove('hidden');
+  // 현재 새의 스킬 버튼 세팅
+  const sk = SKILLS[currentSpecies];
+  skillIconEl.innerHTML = sk.icon;
+  skillBtnEl.title = `${skillName(currentSpecies)} — ${skillDesc(currentSpecies)} (Shift/S)`;
+  skillBtnEl.classList.remove('hidden');
+  skillBtnEl.classList.add('ready');
+  skillCdTxt.textContent = '';
+  steerX = 0; steerId = null;
+  showTouchButtons(true);
+  if (isTouchDevice && ctrlScheme === 'tilt') enableTilt();
+  flap();
+}
+
+function gameOver() {
+  if (grace > 0 || state !== 'playing') return;
+  if (shieldOn) {
+    // 병아리 알껍질 보호막: 충돌 1회 무효
+    shieldOn = false;
+    eggShell.visible = false;
+    grace = 1;
+    vy = Math.max(vy, 7);
+    SFX.skill();
+    return;
+  }
+  SFX.hit();
+  vib(120);
+  skillBtnEl.classList.add('hidden');
+  steerX = 0; steerId = null;
+  showTouchButtons(false);
+  // 게임당 1회: 광고 켜지면 '광고 보고 부활', 꺼진 지금은 '무료 부활'
+  const canOnce = !adReviveUsed;
+  const canStar = save.wallet >= starReviveCost;
+  if (!canOnce && !canStar) { finalizeGameOver(); return; }
+  // 부활 선택 화면
+  state = 'revive';
+  scoreEl.classList.add('hidden');
+  runStarsEl.classList.add('hidden');
+  document.getElementById('reviveScore').textContent = score;
+  adReviveBtn.style.display = canOnce ? '' : 'none';
+  adReviveBtn.textContent = ADS_ENABLED ? t('adRevive') : t('freeRevive');
+  starReviveBtn.disabled = !canStar;
+  starReviveBtn.textContent = t('starRevive', starReviveCost, save.wallet);
+  revivePanel.classList.remove('hidden');
+  // 5초 제한: 시간 내 선택 없으면 게임 오버 확정 (링이 점점 사라짐)
+  let remain = 5;
+  document.getElementById('reviveCount').textContent = remain;
+  const ring = document.getElementById('reviveRing');
+  ring.style.animation = 'none';
+  void ring.getBoundingClientRect();   // 애니메이션 재시작용 리플로우
+  ring.style.animation = 'ringDrain 5s linear forwards';
+  stopReviveTimer();
+  reviveIv = setInterval(() => {
+    remain--;
+    document.getElementById('reviveCount').textContent = Math.max(remain, 0);
+    if (remain <= 0) { stopReviveTimer(); finalizeGameOver(); }
+  }, 1000);
+}
+
+let reviveIv = null;
+function stopReviveTimer() {
+  if (reviveIv) { clearInterval(reviveIv); reviveIv = null; }
+}
+
+function finalizeGameOver() {
+  stopReviveTimer();
+  state = 'over';
+  SFX.over();
+  revivePanel.classList.add('hidden');
+  best = Math.max(best, score);
+  localStorage.setItem('flappy3d-best', best);
+  save.wallet += runStars;
+  // 모드별 최고 점수 기록 → 점수로 해금되는 맵이 새로 열렸는지 확인
+  const wasUnlocked = MODES.filter(modeUnlocked).map(m => m.id);
+  save.bestMode[save.mode] = Math.max(save.bestMode[save.mode] ?? 0, score);
+  const newly = MODES.filter(m => modeUnlocked(m) && !wasUnlocked.includes(m.id));
+  document.getElementById('unlockMsg').textContent =
+    newly.length ? t('unlockDone', nm(newly[0].id)) : '';
+  renderCarousel();
+  persist();
+  // 토스 게임센터 리더보드에 점수 제출 (앱인토스 환경에서만 동작)
+  if (score > 0 && typeof window.tossSubmitScore === 'function') window.tossSubmitScore(score);
+  finalScoreEl.textContent = score;
+  bestScoreEl.textContent = best;
+  earnedStarsEl.textContent = runStars;
+  walletMain.textContent = save.wallet;
+  scoreEl.classList.add('hidden');
+  runStarsEl.classList.add('hidden');
+  overPanel.classList.remove('hidden');
+}
+
+function doRevive() {
+  revivePanel.classList.add('hidden');
+  scoreEl.classList.remove('hidden');
+  runStarsEl.classList.remove('hidden');
+  // 눈앞의 장애물을 뒤로 밀어서 숨 돌릴 틈을 줌
+  for (const g of gates) g.group.position.z -= 70;
+  for (const s of stars) s.position.z -= 70;
+  bird.position.set(0, 9, 0);
+  bird.rotation.set(0, 0, 0);
+  vy = 0;
+  grace = 2;   // 2초 무적
+  state = 'playing';
+  skillBtnEl.classList.remove('hidden');
+  steerX = 0; steerId = null;
+  showTouchButtons(true);
+  SFX.revive();
+  vib(40);
+}
+
+function flap() {
+  if (state === 'playing') { vy = FLAP; flapT = 0; SFX.flap(); }
+}
+
+// ---------- 입력 ----------
+document.getElementById('startBtn').addEventListener('click', e => { e.stopPropagation(); handleStart(); });
+document.getElementById('retryBtn').addEventListener('click', e => { e.stopPropagation(); startGame(); });
+// 순위 보기: 앱인토스 환경에서만 버튼 노출, 토스 게임센터 리더보드 웹뷰 열기
+const lbBtn = document.getElementById('lbBtn');
+if (typeof window.tossOpenLeaderboard !== 'function') lbBtn.style.display = 'none';
+lbBtn.addEventListener('click', e => {
+  e.stopPropagation();
+  SFX.click();
+  window.tossOpenLeaderboard?.();
+});
+
+document.getElementById('menuBtn').addEventListener('click', e => {
+  e.stopPropagation();
+  state = 'ready';
+  overPanel.classList.add('hidden');
+  startPanel.classList.remove('hidden');
+  // 첫 화면과 같은 초기 상태로: 새 제자리 + 장애물 새로 배치
+  resetGame();
+  viewIdx = Math.max(0, SLIDES.findIndex(s => s.id === save.mode));
+  renderCarousel();
+});
+// 맵 캐러셀: ←/→ 키·스와이프·‹›로 넘기고, 잠긴 맵은 카드에서 해금
+const modeHint = document.getElementById('modeHint');
+const mapNameEl = document.getElementById('mapName');
+const mapDotsEl = document.getElementById('mapDots');
+const mapStatusEl = document.getElementById('mapStatus');
+const startBtnEl = document.getElementById('startBtn');
+const SLIDES = [...MODES, { id: 'soon', emoji: '🚧', soon: true }];
+let viewIdx = 0;
+let pendingUnlock = null;
+let previewModeId = null;
+
+const unlockBtnEl = document.getElementById('unlockBtn');
+function renderCarousel() {
+  const s = SLIDES[viewIdx];
+  mapNameEl.textContent = `${s.emoji} ${nm(s.id)}`;
+  mapDotsEl.textContent = SLIDES.map((_, i) => (i === viewIdx ? '●' : '○')).join(' ');
+  if (s.soon) {
+    mapStatusEl.textContent = t('newMapsSoon');
+    startBtnEl.disabled = true;
+    startBtnEl.textContent = t('comingSoon');
+    unlockBtnEl.classList.add('hidden');
+  } else if (!modeUnlocked(s)) {
+    const bestPrev = save.bestMode[s.req.mode] ?? 0;
+    startBtnEl.disabled = true;
+    startBtnEl.textContent = t('locked');
+    if (s.cost === 0) {
+      // 점수만으로 해금되는 맵: 별 표시 없이 목표 점수만 안내
+      mapStatusEl.textContent = t('hintNeedScore', nm(s.req.mode), s.req.score, bestPrev);
+      unlockBtnEl.classList.add('hidden');
+    } else {
+      mapStatusEl.textContent = t('mapStatusLocked', nm(s.req.mode), s.req.score, bestPrev, s.cost);
+      unlockBtnEl.classList.remove('hidden');
+      unlockBtnEl.textContent = t('unlockMode', s.cost);
+    }
+  } else {
+    mapStatusEl.textContent = '';
+    startBtnEl.disabled = false;
+    startBtnEl.textContent = t('play');
+    unlockBtnEl.classList.add('hidden');
+  }
+}
+
+function navMap(dir) {
+  if (state !== 'ready' || shopOpen || settingsOpen) return;
+  viewIdx = (viewIdx + dir + SLIDES.length) % SLIDES.length;
+  pendingUnlock = null;
+  modeHint.textContent = '';
+  const s = SLIDES[viewIdx];
+  if (!s.soon) {
+    previewModeId = s.id;                     // 잠긴 맵도 배경 미리보기
+    if (modeUnlocked(s)) { save.mode = s.id; persist(); }
+    applyEquipped();
+    rebuildGates();                           // 장애물도 그 맵 것으로 교체 (새는 그대로)
+  }
+  renderCarousel();
+  SFX.click();
+}
+document.getElementById('mapPrev').addEventListener('click', e => { e.stopPropagation(); navMap(-1); });
+document.getElementById('mapNext').addEventListener('click', e => { e.stopPropagation(); navMap(1); });
+
+// 터치 스와이프: 왼쪽으로 쓸면 다음 맵
+let touchX = null;
+addEventListener('touchstart', e => { touchX = e.touches[0].clientX; }, { passive: true });
+addEventListener('touchend', e => {
+  if (touchX == null) return;
+  const dx = e.changedTouches[0].clientX - touchX;
+  touchX = null;
+  if (dx < -40) navMap(1);
+  else if (dx > 40) navMap(-1);
+}, { passive: true });
+
+// 시작 버튼·스페이스: 열린 맵만 시작 (해금은 전용 버튼으로만)
+function handleStart() {
+  const s = SLIDES[viewIdx];
+  if (s.soon || !modeUnlocked(s)) return;
+  save.mode = s.id;
+  persist();
+  startGame();
+}
+
+// 전용 잠금 해제 버튼 (두 번 눌러 확정)
+unlockBtnEl.addEventListener('click', e => {
+  e.stopPropagation();
+  const s = SLIDES[viewIdx];
+  if (s.soon || modeUnlocked(s)) return;
+  const bestPrev = save.bestMode[s.req.mode] ?? 0;
+  if (bestPrev < s.req.score) {
+    modeHint.textContent = t('hintNeedScore', nm(s.req.mode), s.req.score, bestPrev);
+    pendingUnlock = null; SFX.click(); return;
+  }
+  if (save.wallet < s.cost) {
+    modeHint.textContent = t('hintNeedStars', s.cost);
+    pendingUnlock = null; SFX.click(); return;
+  }
+  if (pendingUnlock !== s.id) {
+    pendingUnlock = s.id;
+    unlockBtnEl.textContent = t('unlockConfirmBtn', s.cost);
+    modeHint.textContent = t('hintConfirm');
+    SFX.click(); return;
+  }
+  save.wallet -= s.cost;
+  save.unlockedModes.push(s.id);
+  pendingUnlock = null;
+  save.mode = s.id;
+  walletMain.textContent = save.wallet;
+  persist();
+  applyEquipped();
+  renderCarousel();
+  modeHint.textContent = t('unlockDone', nm(s.id));
+  SFX.buy();
+});
+
+document.getElementById('shopBtn').addEventListener('click', e => {
+  e.stopPropagation();
+  shopOpen = true;
+  renderShop();
+  startPanel.classList.add('hidden');
+  shopPanel.classList.remove('hidden');
+});
+document.getElementById('shopBackBtn').addEventListener('click', e => {
+  e.stopPropagation();
+  shopOpen = false;
+  shopPanel.classList.add('hidden');
+  startPanel.classList.remove('hidden');
+});
+
+// ---------- 설정 ----------
+const settingsPanel = document.getElementById('settingsPanel');
+const helpPanel = document.getElementById('helpPanel');
+let settingsOpen = false;
+let vibOn = (localStorage.getItem('flappy3d-vib') ?? '1') === '1';
+let lowGfx = localStorage.getItem('flappy3d-lowgfx') === '1';
+const vib = ms => { if (vibOn && navigator.vibrate) navigator.vibrate(ms); };
+function applyGfx() {
+  renderer.setPixelRatio(lowGfx ? 1 : Math.min(devicePixelRatio, 2));
+  sun.castShadow = !lowGfx;
+}
+applyGfx();
+
+function renderSettings() {
+  const set = (id, on) => {
+    const b = document.getElementById(id);
+    b.textContent = on ? t('on') : t('off');
+    b.classList.toggle('off', !on);
+  };
+  set('setSfxBtn', sfxOn);
+  set('setVibBtn', vibOn);
+  set('setLowBtn', lowGfx);
+  document.getElementById('setLangBtn').textContent = (LANGS.find(l => l[0] === lang) || LANGS[0])[1];
+  document.getElementById('ctrlRow').style.display = isTouchDevice ? '' : 'none';   // 조작 방식은 터치 기기만
+  document.getElementById('setCtrlBtn').textContent =
+    t(ctrlScheme === 'tilt' ? 'ctrlTilt' : ctrlScheme === 'split' ? 'ctrlSplit' : 'ctrlButtons');
+}
+document.getElementById('setCtrlBtn').addEventListener('click', e => {
+  e.stopPropagation();
+  const order = ['buttons', 'split', 'tilt'];
+  ctrlScheme = order[(order.indexOf(ctrlScheme) + 1) % order.length];
+  localStorage.setItem('wingdodge-ctrl', ctrlScheme);
+  steerX = 0;
+  if (ctrlScheme === 'tilt') enableTilt();   // 선택 시 권한 요청(iOS)
+  renderSettings();
+  SFX.click();
+});
+// 언어 선택 패널 (목록에서 고르기)
+const langPanel = document.getElementById('langPanel');
+const langList = document.getElementById('langList');
+function renderLangList() {
+  langList.innerHTML = '';
+  for (const [code, label] of LANGS) {
+    const b = document.createElement('button');
+    b.className = 'lang-item' + (code === lang ? ' sel' : '');
+    b.textContent = label;
+    b.addEventListener('click', ev => {
+      ev.stopPropagation();
+      lang = code;
+      localStorage.setItem('flappy3d-lang', lang);
+      applyLang();
+      renderSettings();
+      renderShop();
+      renderCarousel();
+      langPanel.classList.add('hidden');
+      settingsPanel.classList.remove('hidden');
+      SFX.click();
+    });
+    langList.appendChild(b);
+  }
+}
+document.getElementById('setLangBtn').addEventListener('click', e => {
+  e.stopPropagation();
+  renderLangList();
+  settingsPanel.classList.add('hidden');
+  langPanel.classList.remove('hidden');
+  SFX.click();
+});
+document.getElementById('langBackBtn').addEventListener('click', e => {
+  e.stopPropagation();
+  langPanel.classList.add('hidden');
+  settingsPanel.classList.remove('hidden');
+  SFX.click();
+});
+
+document.getElementById('settingsBtn').addEventListener('click', e => {
+  e.stopPropagation();
+  if (state !== 'ready' || shopOpen) return;   // 메인 화면에서만 설정 열기
+  settingsOpen = true;
+  renderSettings();
+  startPanel.classList.add('hidden');
+  settingsPanel.classList.remove('hidden');
+  SFX.click();
+});
+document.getElementById('setBackBtn').addEventListener('click', e => {
+  e.stopPropagation();
+  settingsOpen = false;
+  settingsPanel.classList.add('hidden');
+  startPanel.classList.remove('hidden');
+  SFX.click();
+});
+document.getElementById('setSfxBtn').addEventListener('click', e => {
+  e.stopPropagation();
+  sfxOn = !sfxOn;
+  localStorage.setItem('flappy3d-sfx', sfxOn ? '1' : '0');
+  renderSettings();
+  if (sfxOn) SFX.click();
+});
+document.getElementById('setVibBtn').addEventListener('click', e => {
+  e.stopPropagation();
+  vibOn = !vibOn;
+  localStorage.setItem('flappy3d-vib', vibOn ? '1' : '0');
+  renderSettings();
+  vib(40);
+  SFX.click();
+});
+document.getElementById('setLowBtn').addEventListener('click', e => {
+  e.stopPropagation();
+  lowGfx = !lowGfx;
+  localStorage.setItem('flappy3d-lowgfx', lowGfx ? '1' : '0');
+  applyGfx();
+  renderSettings();
+  SFX.click();
+});
+document.getElementById('helpBtn').addEventListener('click', e => {
+  e.stopPropagation();
+  settingsPanel.classList.add('hidden');
+  helpPanel.classList.remove('hidden');
+  SFX.click();
+});
+document.getElementById('helpBackBtn').addEventListener('click', e => {
+  e.stopPropagation();
+  helpPanel.classList.add('hidden');
+  settingsPanel.classList.remove('hidden');
+  SFX.click();
+});
+let resetPending = false;
+document.getElementById('resetBtn').addEventListener('click', e => {
+  e.stopPropagation();
+  if (!resetPending) {
+    resetPending = true;
+    e.target.textContent = t('resetConfirm');
+    SFX.click();
+    return;
+  }
+  for (const k of ['flappy3d-save', 'flappy3d-best', 'flappy3d-sfx', 'flappy3d-vib', 'flappy3d-lowgfx'])
+    localStorage.removeItem(k);
+  location.reload();
+});
+
+// ---------- 보상형 광고 어댑터 ----------
+// · 웹사이트: 애드센스 H5 Games Ads(adBreak). 아래 ADSENSE_PUB에 승인받은 게시자 ID 입력 시 활성화
+// · 앱인토스: 래퍼가 window.tossShowRewardedAd(cb) 주입 시 자동 사용 (토스 SDK GoogleAdMob)
+// · 둘 다 없으면 임시 대기화면(3초)
+// 애드센스 스크립트는 <head>에 이미 로드됨. H5 게임광고(보상형) 승인 후 true로 바꾸면 실제 광고 재생
+const ADSENSE_ADS_READY = false;
+const ADSENSE_PUB = ADSENSE_ADS_READY ? 'ca-pub-6240593008907807' : '';
+if (ADSENSE_PUB) {
+  window.adsbygoogle = window.adsbygoogle || [];
+  window.adBreak = window.adConfig = o => adsbygoogle.push(o);
+  adConfig({ preloadAdBreaks: 'on' });
+}
+
+function playRewardedAd(onDone) {
+  // 1) 웹: 애드센스 H5 보상형 광고
+  if (ADSENSE_PUB && typeof window.adBreak === 'function') {
+    adPlaying = true;
+    let rewarded = false;
+    window.adBreak({
+      type: 'reward', name: 'revive',
+      beforeReward: showAdFn => showAdFn(),
+      adViewed: () => { rewarded = true; },
+      adBreakDone: () => {
+        adPlaying = false;
+        if (rewarded) onDone();
+        else revivePanel.classList.remove('hidden');   // 미시청/실패 시 다시 선택
+      },
+    });
+    return;
+  }
+  // 2) 앱인토스: 토스 광고
+  if (typeof window.tossShowRewardedAd === 'function') {
+    adPlaying = true;
+    window.tossShowRewardedAd(ok => {
+      adPlaying = false;
+      if (ok) onDone();
+      else revivePanel.classList.remove('hidden');
+    });
+    return;
+  }
+  // 3) 임시 대기화면
+  adPlaying = true;
+  const adOverlay = document.getElementById('adOverlay');
+  const adCount = document.getElementById('adCount');
+  adOverlay.classList.remove('hidden');
+  let n = 3;
+  adCount.textContent = n;
+  const iv = setInterval(() => {
+    n--;
+    if (n > 0) { adCount.textContent = n; return; }
+    clearInterval(iv);
+    adOverlay.classList.add('hidden');
+    adPlaying = false;
+    onDone();
+  }, 1000);
+}
+
+adReviveBtn.addEventListener('click', e => {
+  e.stopPropagation();
+  if (adPlaying || adReviveUsed) return;
+  stopReviveTimer();
+  revivePanel.classList.add('hidden');
+  if (ADS_ENABLED) {
+    playRewardedAd(() => { adReviveUsed = true; doRevive(); });
+  } else {
+    // 광고 준비 전: 무료 부활 (게임당 1회)
+    adReviveUsed = true;
+    doRevive();
+  }
+});
+starReviveBtn.addEventListener('click', e => {
+  e.stopPropagation();
+  if (save.wallet < starReviveCost) return;
+  stopReviveTimer();
+  save.wallet -= starReviveCost;
+  starReviveCost *= 2;   // 다음 별 부활은 2배
+  persist();
+  walletMain.textContent = save.wallet;
+  doRevive();
+});
+document.getElementById('giveUpBtn').addEventListener('click', e => {
+  e.stopPropagation();
+  finalizeGameOver();
+});
+
+// 통합 포인터 입력: PC=클릭 점프 / 좌우분할=왼쪽 밀면 조향·탭하면 점프, 오른쪽 탭 점프 / 기울기=아무데나 점프
+let steerMoved = false;
+addEventListener('pointerdown', e => {
+  if (state !== 'playing') return;
+  if (e.pointerType === 'touch' && ctrlScheme === 'split') {
+    if (e.clientX < innerWidth / 2 && steerId === null) {
+      steerId = e.pointerId; steerStartX = e.clientX; steerMoved = false;   // 왼쪽: 조향 추적 시작
+    } else flap();                                                          // 오른쪽 / 조향 중 두 번째 손가락: 점프
+  } else flap();                                                            // 마우스 / 기울기: 어디나 점프
+});
+addEventListener('pointermove', e => {
+  if (e.pointerId === steerId) {
+    const d = e.clientX - steerStartX;
+    if (Math.abs(d) > 8) steerMoved = true;
+    steerX = THREE.MathUtils.clamp(d / 40, -1, 1);
+  }
+});
+for (const ev of ['pointerup', 'pointercancel']) addEventListener(ev, e => {
+  if (e.pointerId === steerId) {
+    if (!steerMoved && ev === 'pointerup' && state === 'playing') flap();   // 왼쪽 '탭'(안 밀었으면) = 점프
+    steerId = null; steerX = 0;
+  }
+});
+addEventListener('keydown', e => {
+  keys[e.code] = true;
+  if (e.code === 'Space' || e.code === 'ArrowUp') {
+    e.preventDefault();
+    if (state === 'playing') flap();
+    else if (!shopOpen && !settingsOpen && state !== 'revive' && !adPlaying) handleStart();
+  }
+  if ((e.code === 'ShiftLeft' || e.code === 'ShiftRight' || e.code === 'KeyS') && state === 'playing') useSkill();
+  // 메뉴에서 ←/→ 로 맵 넘기기
+  if (!e.repeat && state === 'ready' && !shopOpen) {
+    if (e.code === 'ArrowRight') navMap(1);
+    else if (e.code === 'ArrowLeft') navMap(-1);
+  }
+});
+addEventListener('keyup', e => { keys[e.code] = false; });
+
+// ---------- 루프 ----------
+const clock = new THREE.Clock();
+const BIRD_R = 0.65;
+
+function animate() {
+  requestAnimationFrame(animate);
+  const dt = Math.min(clock.getDelta(), 0.033);
+  const t = clock.elapsedTime;
+
+  // 날개: 목표값을 부드럽게 추적해서 자연스러운 움직임
+  let targetSpread, targetStroke;
+  const flapping = state === 'playing' && flapT < FLAP_DUR;
+  if (state === 'playing') {
+    flapT += dt;
+    if (flapT < FLAP_DUR) {
+      // 날갯짓: 힘차게 내리치고 부드럽게 복귀
+      const p = flapT / FLAP_DUR;
+      targetSpread = 1;
+      targetStroke = Math.sin(p * Math.PI * 2) * (1 - p * 0.25);
+    } else {
+      // 활공: 상승 중엔 반쯤 펴서 기류를 타고, 하강할수록 몸에 접음
+      targetSpread = THREE.MathUtils.clamp(0.55 + vy * 0.055, 0, 0.85);
+      targetStroke = Math.sin(t * 2.2) * 0.06 * targetSpread;   // 미세한 기류 흔들림
+    }
+  } else {
+    targetSpread = 1;                           // 메뉴: 천천히 계속 퍼덕
+    targetStroke = Math.sin(t * 6) * 0.5;
+  }
+  const wk = 1 - Math.pow(0.0002, dt);          // 프레임률 무관 스무딩
+  wingSpread += (targetSpread - wingSpread) * wk;
+  wingStroke += (targetStroke - wingStroke) * (flapping ? 1 : wk);  // 스트로크는 즉각, 복귀는 부드럽게
+  wingR.rotation.y = THREE.MathUtils.lerp(-1.15, -0.12, wingSpread);
+  wingR.rotation.z = -wingStroke * 0.95;
+  wingR.rotation.x = wingStroke * 0.2;          // 스트로크에 맞춘 날개 비틀림 (페더링)
+  wingL.rotation.y = -wingR.rotation.y;         // 거울 반전된 날개는 y·z 부호 반대
+  wingL.rotation.z = -wingR.rotation.z;
+  wingL.rotation.x = wingR.rotation.x;          // x축 비틀림은 대칭이라 그대로
+
+  // 별 회전 (항상)
+  for (const s of stars) s.rotation.y += 3 * dt;
+
+  // 유리창 세계 날씨: 비 / 눈 / 번개
+  if (rainObj.visible) {
+    const a = rainObj.geometry.attributes.position.array;
+    for (let i = 0; i < a.length; i += 6) {
+      a[i + 1] -= 30 * dt;
+      if (a[i + 1] < 0) a[i + 1] += 26;
+      a[i + 4] = a[i + 1] - 0.9;
+    }
+    rainObj.geometry.attributes.position.needsUpdate = true;
+  }
+  if (snowObj.visible) {
+    const a = snowObj.geometry.attributes.position.array;
+    for (let i = 0; i < a.length; i += 3) {
+      a[i + 1] -= 3.5 * dt;
+      a[i] += Math.sin(t * 0.8 + i) * 0.012;
+      if (a[i + 1] < 0) a[i + 1] += 26;
+    }
+    snowObj.geometry.attributes.position.needsUpdate = true;
+  }
+  if (currentGlassStyle && currentGlassStyle.lightning) {
+    lightT -= dt;
+    if (lightT <= 0) {
+      lightT = rand(6, 18);   // 번개는 뜸하게, 불규칙하게
+      flash = 0.15;
+      scene.background.set(0xcfd8e8);
+      scene.fog.color.set(0xcfd8e8);
+      ambient.intensity = 2.2;
+      SFX.thunder();
+    }
+  }
+  if (flash > 0) {
+    flash -= dt;
+    if (flash <= 0 && currentGlassStyle) {
+      scene.background.set(currentGlassStyle.sky);
+      scene.fog.color.set(currentGlassStyle.sky);
+      ambient.intensity = currentGlassStyle.amb;
+    }
+  }
+
+  if (state === 'playing') {
+    // 스킬 타이머
+    if (skillCd > 0) skillCd -= dt;
+    if (smallT > 0) smallT -= dt;
+    if (slowT > 0) slowT -= dt;
+    if (magnetT > 0) magnetT -= dt;
+    if (shieldOn) {
+      shieldT -= dt;
+      // 끝나기 1초 전부터 껍질 깜빡임
+      eggShell.visible = shieldT > 1 || Math.floor(t * 10) % 2 === 0;
+      if (shieldT <= 0) { shieldOn = false; eggShell.visible = false; }
+    }
+    const R = BIRD_R * (smallT > 0 ? 0.55 : 1);   // 콩알 변신: 충돌 판정도 축소
+    // 끝나기 1초 전엔 크기가 깜빡이며 원래대로 돌아갈 예고
+    const smallTarget = smallT > 0
+      ? (smallT < 1 && Math.floor(t * 10) % 2 === 1 ? 0.8 : 0.55) : 1;
+    const sc2 = THREE.MathUtils.lerp(bird.scale.x, smallTarget, 1 - Math.pow(0.001, dt));
+    bird.scale.setScalar(sc2);
+
+    vy += GRAVITY * dt;
+    bird.position.y += vy * dt;
+
+    let dx = 0;
+    if (keys['ArrowLeft']) dx -= 1;
+    if (keys['ArrowRight']) dx += 1;
+    if (dx === 0) dx = steerX;   // 키 입력 없으면 터치/기울기 아날로그 조향
+    bird.position.x += dx * SIDE_SPEED * dt;
+    bird.position.x = THREE.MathUtils.clamp(bird.position.x, -HALF_W + BIRD_R, HALF_W - BIRD_R);
+
+    bird.rotation.x = THREE.MathUtils.clamp(-vy * 0.04, -0.6, 0.9);
+    bird.rotation.z = THREE.MathUtils.lerp(bird.rotation.z, -dx * 0.5, 10 * dt);
+
+    if (bird.position.y > CEIL - BIRD_R) { bird.position.y = CEIL - BIRD_R; vy = Math.min(vy, 0); }
+    if (bird.position.y < R + 0.05) {
+      if (grace > 0) { bird.position.y = R + 0.05; vy = Math.max(vy, 0); }
+      else gameOver();
+    }
+
+    // 부활 무적: 깜빡이면서 충돌 무시
+    if (grace > 0) {
+      grace -= dt;
+      bird.visible = Math.floor(t * 12) % 2 === 0;
+      if (grace <= 0) bird.visible = true;
+    }
+
+    // 시간이 지날수록 점점 빨라짐
+    playTime += dt;
+    speed = Math.min(MAX_SPEED, BASE_SPEED + playTime * ACCEL);
+    const effSpeed = slowT > 0 ? speed * 0.55 : speed;   // 찰나의 눈: 세상이 느려짐
+
+    // 게이트 이동 + 충돌 + 점수
+    for (const g of gates) {
+      g.group.position.z += effSpeed * dt;
+      const z = g.group.position.z;
+
+      if (grace <= 0 && Math.abs(z) < GATE_DEPTH / 2 + BIRD_R) {
+        const bx = bird.position.x, by = bird.position.y;
+        if (g.hole) {
+          // 유리창: 깨진 구멍 안에 있어야 통과
+          const d2 = (bx - g.hole.x) ** 2 + (by - g.hole.y) ** 2;
+          if (d2 > (g.hole.r - R * 0.6) ** 2) gameOver();
+        } else {
+          for (const c of g.cols) {
+            const nx = THREE.MathUtils.clamp(bx, c.minX, c.maxX);
+            const ny = THREE.MathUtils.clamp(by, c.minY, c.maxY);
+            if ((bx - nx) ** 2 + (by - ny) ** 2 < (R * 0.85) ** 2) { gameOver(); break; }
+          }
+        }
+      }
+      if (!g.passed && z > GATE_DEPTH / 2 + BIRD_R) {
+        g.passed = true;
+        score++;
+        scoreEl.textContent = score;
+        SFX.score();
+        // 다이나믹 날씨: 8점마다 다음 단계로 격변
+        if (dynamicGlass) {
+          const ph = Math.min(Math.floor(score / 8), glassPhases.length - 1);
+          if (glassPhases[ph] && glassPhases[ph] !== currentGlassStyle) applyGlassStyle(glassPhases[ph]);
+        }
+      }
+      if (z > 20) {
+        let minZ = Infinity;
+        for (const o of gates) minZ = Math.min(minZ, o.group.position.z);
+        disposeObj(g.group);
+        gates.splice(gates.indexOf(g), 1);
+        createGate(minZ - GATE_SPACING);
+      }
+    }
+
+    // 별 이동 + 획득 (부엉이 자석: 주변 별을 끌어당김)
+    for (let i = stars.length - 1; i >= 0; i--) {
+      const s = stars[i];
+      s.position.z += effSpeed * dt;
+      if (magnetT > 0) {
+        const mx = bird.position.x - s.position.x;
+        const my = bird.position.y - s.position.y;
+        const mz = -s.position.z;
+        const md = Math.hypot(mx, my, mz);
+        if (md < 26) {
+          const pull = (30 * dt) / Math.max(md, 1);
+          s.position.x += mx * pull;
+          s.position.y += my * pull;
+          s.position.z += mz * pull;
+        }
+      }
+      if (Math.abs(s.position.z) < 1.4) {
+        const dx2 = s.position.x - bird.position.x, dy2 = s.position.y - bird.position.y;
+        if (dx2 * dx2 + dy2 * dy2 < 1.8 * 1.8) {
+          scene.remove(s);
+          stars.splice(i, 1);
+          runStars++;
+          runStarsEl.textContent = '⭐ ' + runStars;
+          SFX.star();
+          continue;
+        }
+      }
+      if (s.position.z > 20) { scene.remove(s); stars.splice(i, 1); }
+    }
+
+    // 스킬 버튼 쿨타임 표시
+    const cdNow = Math.ceil(Math.max(0, skillCd));
+    if (cdNow !== lastCdShown) {
+      lastCdShown = cdNow;
+      skillCdTxt.textContent = cdNow > 0 ? cdNow : '';
+      skillBtnEl.classList.toggle('ready', cdNow === 0);
+    }
+    // 스킬 종료 1초 전: 버튼 깜빡임 경고
+    const activeT = Math.max(smallT, slowT, magnetT, shieldOn ? shieldT : 0);
+    skillBtnEl.classList.toggle('expiring', activeT > 0 && activeT < 1);
+
+    groundTex.offset.y -= (effSpeed * dt) / 10;
+    for (const cl of clouds) {
+      cl.position.z += effSpeed * dt * 0.4;
+      if (cl.position.z > 20) cl.position.z = -300;
+    }
+    // 양옆 소품 스크롤 + 재배치 (모든 세계의 소품)
+    for (const p of allProps) {
+      if (!p.parallax) continue;
+      p.obj.position.z += effSpeed * dt * p.parallax;
+      if (p.obj.position.z > 25) {
+        p.obj.position.z -= (p.span ?? 350);
+        if (!p.keepX) p.obj.position.x = randSideX(p.min, p.max);
+      }
+    }
+  } else {
+    bird.position.y = 9 + Math.sin(t * 2) * 0.5;
+  }
+
+  const target = new THREE.Vector3(bird.position.x * 0.85, bird.position.y + 3.2, 13);
+  camera.position.lerp(target, 1 - Math.pow(0.001, dt));
+  camera.lookAt(bird.position.x * 0.6, bird.position.y + 0.5, -30);
+
+  renderer.render(scene, camera);
+}
+
+applyLang();
+applyEquipped();
+renderShop();
+viewIdx = Math.max(0, SLIDES.findIndex(s => s.id === save.mode));
+renderCarousel();
+resetGame();
+animate();
+</script>

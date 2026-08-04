@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>3D 오락실</title>
+<style>
+  :root {
+    --bg: #0b0d1a;
+    --card: #151832;
+    --neon-pink: #ff4fd8;
+    --neon-cyan: #37e6ff;
+    --neon-yellow: #ffd93b;
+    --text: #eef0ff;
+    --dim: #9aa0c8;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; }
+  body {
+    background: var(--bg);
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(255,79,216,.18), transparent),
+      radial-gradient(ellipse 70% 40% at 80% 110%, rgba(55,230,255,.12), transparent);
+    color: var(--text);
+    font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
+    padding-bottom: 60px;
+  }
+
+  /* 헤더 */
+  header { text-align: center; padding: 56px 16px 8px; }
+  h1 {
+    margin: 0;
+    font-size: clamp(34px, 7vw, 58px);
+    font-weight: 900;
+    letter-spacing: 2px;
+    background: linear-gradient(90deg, var(--neon-cyan), var(--neon-pink), var(--neon-yellow));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 0 18px rgba(255,79,216,.35));
+  }
+  .subtitle { color: var(--dim); font-size: 17px; margin-top: 10px; }
+  .marquee {
+    display: inline-block; margin-top: 18px; padding: 7px 22px;
+    border: 1px solid rgba(55,230,255,.4); border-radius: 999px;
+    color: var(--neon-cyan); font-size: 14px; letter-spacing: 3px;
+    text-shadow: 0 0 8px rgba(55,230,255,.6);
+    animation: blink 2.2s ease-in-out infinite;
+  }
+  @keyframes blink { 50% { opacity: .45; } }
+
+  /* 게임 그리드 */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 22px;
+    max-width: 1100px;
+    margin: 44px auto 0;
+    padding: 0 20px;
+  }
+  .game-card {
+    position: relative;
+    display: flex; flex-direction: column;
+    background: var(--card);
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 18px;
+    overflow: hidden;
+    text-decoration: none;
+    color: var(--text);
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+  }
+  .game-card.playable:hover {
+    transform: translateY(-6px);
+    border-color: rgba(55,230,255,.55);
+    box-shadow: 0 10px 34px rgba(55,230,255,.22), 0 0 0 1px rgba(55,230,255,.25);
+  }
+  .thumb {
+    height: 140px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 64px;
+    text-shadow: 0 6px 18px rgba(0,0,0,.45);
+  }
+  .body { padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+  .body h2 { margin: 0; font-size: 20px; font-weight: 800; }
+  .body p { margin: 0; font-size: 14px; color: var(--dim); line-height: 1.55; flex: 1; }
+  .tags { display: flex; gap: 6px; flex-wrap: wrap; }
+  .tag {
+    font-size: 12px; padding: 3px 10px; border-radius: 999px;
+    background: rgba(255,255,255,.08); color: var(--dim);
+  }
+  .play {
+    margin-top: 10px; text-align: center;
+    padding: 10px; border-radius: 10px;
+    font-weight: 800; font-size: 15px; letter-spacing: 1px;
+    background: linear-gradient(90deg, var(--neon-pink), #b44fff);
+    color: #fff;
+    box-shadow: 0 4px 16px rgba(255,79,216,.35);
+  }
+  .game-card.soon { opacity: .55; filter: saturate(.5); cursor: default; }
+  .game-card.soon .play {
+    background: rgba(255,255,255,.1); color: var(--dim); box-shadow: none;
+  }
+  .ribbon {
+    position: absolute; top: 12px; right: -34px;
+    transform: rotate(38deg);
+    background: var(--neon-yellow); color: #5b4300;
+    font-size: 12px; font-weight: 800; padding: 4px 40px;
+  }
+
+  footer { text-align: center; margin-top: 60px; color: var(--dim); font-size: 13px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🕹️ 3D 오락실</h1>
+  <div class="subtitle">추억의 게임들, 3D로 다시 태어나다</div>
+  <div class="marquee">INSERT COIN ▶ PRESS START</div>
+</header>
+
+<main class="grid" id="grid"></main>
+
+<footer>새 게임은 games/ 폴더에 넣고 games.js에 등록하면 자동으로 표시됩니다.</footer>
+
+<script src="games.js"></script>
+<script>
+  const grid = document.getElementById('grid');
+  for (const g of GAMES) {
+    const playable = !!g.path;
+    const el = document.createElement(playable ? 'a' : 'div');
+    el.className = 'game-card ' + (playable ? 'playable' : 'soon');
+    if (playable) el.href = 'player.html?game=' + encodeURIComponent(g.id);
+    el.innerHTML = `
+      <div class="thumb" style="background: linear-gradient(135deg, ${g.color1}, ${g.color2})">${g.emoji}</div>
+      <div class="body">
+        <h2>${g.title}</h2>
+        <p>${g.desc}</p>
+        <div class="tags">${g.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>
+        <div class="play">${playable ? '▶ 플레이' : '출시 예정'}</div>
+      </div>
+      ${playable ? '' : '<div class="ribbon">COMING SOON</div>'}`;
+    grid.appendChild(el);
+  }
+</script>
+</body>
+</html>
