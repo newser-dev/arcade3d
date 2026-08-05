@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://arcade3d.app/sitemap.xml
