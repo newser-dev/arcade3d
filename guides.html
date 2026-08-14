@@ -3,16 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>게임 가이드 - 조작법과 공략 팁 | 3D 오락실</title>
-<meta name="description" content="윙 닷지 3D, 3D 바운스볼, 스카이 바운스 3D의 조작법과 공략 팁을 정리했습니다.">
+<title>게임 가이드 — 조작법과 공략 모음 | 3D 오락실</title>
+<meta name="description" content="윙 닷지 3D, 3D 바운스볼, 스카이 바운스 3D의 조작법과 공략을 게임별로 정리했습니다. 처음 하는 분을 위한 공통 요령도 함께 담았습니다.">
 <link rel="canonical" href="https://arcade3d.app/guides.html">
 <meta property="og:type" content="article">
-<meta property="og:title" content="게임 가이드 — 조작법과 공략 팁 | 3D 오락실">
-<meta property="og:description" content="윙 닷지 3D, 3D 바운스볼, 스카이 바운스 3D의 조작법과 공략 팁.">
+<meta property="og:title" content="게임 가이드 — 조작법과 공략 모음 | 3D 오락실">
+<meta property="og:description" content="게임별 상세 공략과 처음 하는 분을 위한 요령.">
 <meta property="og:url" content="https://arcade3d.app/guides.html">
 <meta property="og:image" content="https://arcade3d.app/games/wing-dodge-3d/og-card.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="games/wing-dodge-3d/icon-600.png">
+<link rel="stylesheet" href="content.css">
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6240593008907807"
      crossorigin="anonymous"></script>
 <!-- Google tag (gtag.js) -->
@@ -23,112 +24,60 @@
   gtag('js', new Date());
   gtag('config', 'G-FQD6KVG3C0');
 </script>
-<style>
-  :root {
-    --bg: #0b0d1a; --card: #151832; --neon-pink: #ff4fd8; --neon-cyan: #37e6ff;
-    --neon-yellow: #ffd93b; --text: #eef0ff; --dim: #9aa0c8;
-  }
-  * { box-sizing: border-box; }
-  html, body { margin: 0; min-height: 100%; }
-  body {
-    background: var(--bg);
-    background-image: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(255,79,216,.18), transparent);
-    color: var(--text);
-    font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
-    padding-bottom: 60px; line-height: 1.8;
-  }
-  header { text-align: center; padding: 46px 16px 8px; }
-  h1 {
-    margin: 0; font-size: clamp(26px, 5vw, 40px); font-weight: 900; letter-spacing: 2px;
-    background: linear-gradient(90deg, var(--neon-cyan), var(--neon-pink));
-    -webkit-background-clip: text; background-clip: text; color: transparent;
-  }
-  .back { display: inline-block; margin-top: 14px; color: var(--neon-cyan); text-decoration: none;
-    border: 1px solid rgba(55,230,255,.4); border-radius: 999px; padding: 6px 18px; font-size: 14px; }
-  main { max-width: 760px; margin: 30px auto 0; padding: 0 20px; }
-  .game {
-    background: var(--card); border: 1px solid rgba(255,255,255,.08);
-    border-radius: 18px; padding: 24px 26px; margin-bottom: 22px;
-  }
-  .game h2 { margin: 0 0 4px; font-size: 22px; }
-  .game .sub { color: var(--dim); font-size: 14px; margin-bottom: 14px; }
-  .game h3 { font-size: 16px; margin: 18px 0 6px; color: var(--neon-yellow); }
-  .game p, .game li { color: var(--dim); font-size: 15px; margin: 0 0 8px; }
-  .game ul { padding-left: 20px; margin: 0 0 8px; }
-  .game strong { color: var(--text); }
-  .play {
-    display: inline-block; margin-top: 10px; padding: 9px 24px; border-radius: 10px;
-    font-weight: 800; text-decoration: none; color: #fff;
-    background: linear-gradient(90deg, var(--neon-pink), #b44fff);
-  }
-  footer { text-align: center; margin-top: 50px; color: var(--dim); font-size: 13px; }
-  footer a { color: var(--dim); }
-</style>
 </head>
 <body>
 
-<header>
+<header class="page">
   <h1>게임 가이드</h1>
+  <div class="lead">조작법부터 공략까지, 게임별로 정리했습니다</div>
   <div><a class="back" href="index.html">← 오락실 홈으로</a></div>
 </header>
 
 <main>
 
-<div class="game">
-  <h2>🪽 윙 닷지 3D</h2>
-  <div class="sub">사방에서 조여오는 장애물을 피하는 비행 아케이드</div>
-  <h3>조작법</h3>
-  <ul>
-    <li><strong>화면 터치 / 스페이스바</strong> — 날갯짓해서 위로 상승</li>
-    <li><strong>화살표 버튼·방향키 / 폰 기울이기</strong> — 좌우 이동</li>
-    <li><strong>✨ 버튼 / Shift</strong> — 새의 고유 스킬 사용</li>
-  </ul>
-  <h3>공략 팁</h3>
-  <p>장애물은 바닥·천장·양옆 네 방향에서 모두 나옵니다. 화면 가운데 높이를 유지하면 위아래 어느 쪽 장애물에도 대응할 시간이 생깁니다.
-  별은 무리해서 먹지 말고 경로에 자연스럽게 걸리는 것만 챙기는 것이 오래 사는 비결입니다.</p>
-  <p>새마다 스킬이 다릅니다 — 병아리는 <strong>충돌 1회를 막는 알 껍질 방패</strong>, 참새는 <strong>몸 축소</strong>(좁은 틈 통과), 제비는 <strong>별 자석</strong>,
-  부엉이는 <strong>슬로모션</strong>, 독수리는 <strong>전방 장애물 파괴</strong>입니다. 초보라면 실수를 용서해 주는 병아리, 점수 욕심이 있다면 부엉이를 추천합니다.</p>
-  <p>월드는 숲 → 신전 → 유리창 → 백룸 순서로 열립니다. 이전 월드에서 목표 점수를 달성하고 별을 모으면 해금됩니다. 스마트폰은 가로 화면이 시야가 넓어 유리합니다.</p>
-  <a class="play" href="player.html?game=wing-dodge-3d">▶ 플레이</a>
-</div>
+<section class="card">
+  <h2>게임별 상세 공략</h2>
+  <div class="tocList">
+    <a class="tocItem" href="guide-wing-dodge-3d.html">
+      <b>🪽 윙 닷지 3D 공략</b>
+      <span>조작법 · 새 5종 스킬 비교와 추천 · 숲/신전/유리창/백룸 월드별 돌파법 · 별과 상점 운영</span>
+    </a>
+    <a class="tocItem" href="guide-bounceball3d.html">
+      <b>🔴 3D 바운스볼 공략</b>
+      <span>블록 8종 대처법 · 대시/점프/워프/귀환 아이템 활용 · 넘을 수 있는 거리 기준 · 스테이지 구성</span>
+    </a>
+    <a class="tocItem" href="guide-skybounce3d.html">
+      <b>☁️ 스카이 바운스 3D 공략</b>
+      <span>발판 5종 구분법 · 다음 발판을 먼저 보는 습관 · 고득점을 만드는 다섯 가지 요령</span>
+    </a>
+  </div>
+</section>
 
-<div class="game">
-  <h2>🔴 3D 바운스볼</h2>
-  <div class="sub">별을 모두 모아 EXIT까지 — 스테이지 클리어 액션</div>
-  <h3>조작법</h3>
-  <ul>
-    <li><strong>WASD / 드래그 조이스틱</strong> — 이동 (공은 자동으로 튕깁니다)</li>
-    <li><strong>← → / ⟲⟳ 버튼</strong> — 화면 90° 회전, <strong>↑↓</strong> — 줌</li>
-    <li><strong>Shift / 🗺️ 버튼 홀드</strong> — 맵 전체 내려다보기</li>
-    <li><strong>스페이스 / USE 버튼</strong> — 보유한 아이템 사용</li>
-  </ul>
-  <h3>공략 팁</h3>
-  <p>가시에 닿으면 즉사하고 스테이지 처음부터 다시 시작합니다. 서두르지 말고 🗺️로 맵 전체를 먼저 살펴 별 위치와 경로를 그려보세요.</p>
-  <p>노란 아이템은 <strong>대시(7칸 도약)·점프(더 높이)·워프·귀환 마커</strong> 중 하나입니다. 귀환 마커는 한 번 누르면 설치, 다시 누르면 그 자리로 순간이동 —
-  허공에 뜬 별을 뛰어내려 먹고 추락하기 전에 귀환하는 식으로 씁니다. 점프 아이템은 공중에서도 쓸 수 있어 사실상 2단 점프입니다.</p>
-  <p>3칸짜리 넓은 공백은 그냥 뛰면 못 넘습니다 — 직선 조주로에서 속도를 붙인 채 뛰어야 합니다. 파란 벽은 점프 아이템으로만 넘을 수 있고,
-  움직이는 발판은 위에 올라타면 함께 이동하는 페리입니다. 튜토리얼 10스테이지에서 기믹을 하나씩 배우고 모험 월드에 도전하세요.</p>
-  <a class="play" href="player.html?game=bounceball3d">▶ 플레이</a>
-</div>
+<section class="card">
+  <h2>세 게임에 공통으로 통하는 요령</h2>
+  <h3>먼저 보고, 나중에 움직이세요</h3>
+  <p>세 게임 모두 <strong>지금 눈앞이 아니라 조금 뒤를 보는 사람이 오래 살아남습니다.</strong>
+  윙 닷지 3D는 다가오는 장애물 무리를, 3D 바운스볼은 별의 배치와 경로 전체를, 스카이 바운스 3D는 한 층 위의 발판을 미리 봐야 합니다.
+  반응이 빠른 것보다 예측이 빠른 쪽이 항상 유리합니다.</p>
+  <h3>급할수록 손을 덜 쓰세요</h3>
+  <p>위기 상황에서 조작을 몰아치면 대부분 더 나빠집니다. 윙 닷지 3D에서는 연타하면 천장에 붙고, 바운스볼과 스카이 바운스에서는 관성 때문에 목표를 지나칩니다.
+  <strong>짧게 나눠서 조금씩</strong> 넣는 것이 세 게임 모두의 정답입니다.</p>
+  <h3>진행 상황은 브라우저에 저장됩니다</h3>
+  <p>점수·별·최고 기록은 서버가 아니라 이용자의 브라우저에 저장됩니다. 그래서 회원가입 없이 이어서 즐길 수 있지만,
+  브라우저 데이터를 지우거나 시크릿 모드로 접속하면 기록이 초기화되고, PC와 스마트폰 사이에는 기록이 공유되지 않습니다.</p>
+  <h3>느리다면 저사양 모드</h3>
+  <p>화면이 끊긴다면 게임 설정에서 저사양 모드를 켜보세요. 그림자와 일부 효과를 줄여 프레임을 확보합니다.
+  화면이 단순해지는 만큼 장애물이 더 잘 보이는 부수 효과도 있습니다.</p>
+</section>
 
-<div class="game">
-  <h2>☁️ 스카이 바운스 3D</h2>
-  <div class="sub">쉴 새 없이 튀는 공을 조종해 하늘 끝까지 — 무한 상승 아케이드</div>
-  <h3>조작법</h3>
-  <ul>
-    <li><strong>방향키·WASD / 드래그</strong> — 공을 좌우·앞뒤로 조종 (점프는 자동)</li>
-  </ul>
-  <h3>공략 팁</h3>
-  <p>공은 계속 튀고 있으므로 "착지할 발판"이 아니라 "다음 발판"을 보고 미리 움직이는 것이 핵심입니다.
-  화면 아래로 떨어지면 끝이니 항상 위쪽 발판 배치를 먼저 읽으세요.</p>
-  <p>높이 올라갈수록 발판이 좁아지고 간격이 벌어집니다. 무리해서 최단 경로로 오르기보다, 넓은 발판을 징검다리 삼아 안정적으로 오르는 쪽이
-  결과적으로 더 높은 기록을 만듭니다. 최고 기록은 브라우저에 저장되니 어제의 나와 경쟁해 보세요.</p>
-  <a class="play" href="player.html?game=skybounce3d">▶ 플레이</a>
-</div>
+<section class="card">
+  <h2>이 게임들은 어떻게 만들어졌나</h2>
+  <p>2D 게임을 3D로 옮길 때 무엇을 남기고 무엇을 바꾸는지, 어떤 기술로 만들었는지는 <a href="about.html">사이트 소개</a>에 정리해 두었습니다.</p>
+</section>
 
 </main>
 
-<footer>© 2026 Arcade3D · <a href="index.html">홈</a> · <a href="privacy.html">개인정보처리방침</a></footer>
+<footer>© 2026 Arcade3D · <a href="index.html">홈</a> · <a href="about.html">사이트 소개</a> · <a href="privacy.html">개인정보처리방침</a></footer>
 
 </body>
 </html>

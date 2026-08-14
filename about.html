@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>사이트 소개 — 2D 게임을 3D로 다시 만드는 이유 | 3D 오락실</title>
+<meta name="description" content="3D 오락실이 어떤 사이트이고, 옛날 2D 게임을 3D로 리메이크할 때 무엇을 지키고 무엇을 바꾸는지, 어떤 기술로 만들었는지와 앞으로의 계획을 정리했습니다.">
+<link rel="canonical" href="https://arcade3d.app/about.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="사이트 소개 — 2D 게임을 3D로 다시 만드는 이유">
+<meta property="og:description" content="리메이크 원칙, 사용 기술, 앞으로의 계획.">
+<meta property="og:url" content="https://arcade3d.app/about.html">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="games/wing-dodge-3d/icon-600.png">
+<link rel="stylesheet" href="content.css">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6240593008907807"
+     crossorigin="anonymous"></script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-FQD6KVG3C0"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-FQD6KVG3C0');
+</script>
+</head>
+<body>
+
+<header class="page">
+  <h1>3D 오락실 소개</h1>
+  <div class="lead">추억의 2D 게임을 3D로 다시 만드는 개인 프로젝트</div>
+  <div><a class="back" href="index.html">← 오락실 홈으로</a></div>
+</header>
+
+<main>
+
+<section class="card">
+  <h2>어떤 사이트인가요</h2>
+  <p>3D 오락실은 <strong>예전에 많이들 즐기던 2D 게임을 3D로 다시 만들어 모아두는 무료 웹 게임 포털</strong>입니다.
+  피처폰과 초기 스마트폰 시절, 혹은 문방구 앞 오락기에서 잠깐씩 하던 단순한 게임들이 있었습니다.
+  규칙은 한 줄로 설명되는데 손은 계속 가던 그런 게임들이요. 그 규칙을 그대로 두고 공간만 3D로 바꾸면 어떻게 될까 하는 궁금증에서 시작한 프로젝트입니다.</p>
+  <p>모든 게임은 브라우저에서 바로 실행됩니다. 설치할 것도, 가입할 것도, 결제할 것도 없습니다.
+  주소만 열면 몇 초 안에 게임이 시작되고, PC와 스마트폰 모두에서 같은 방식으로 동작합니다.
+  잠깐 시간이 빌 때 부담 없이 한 판 하고 닫을 수 있는 것 — 그게 원본 게임들이 가졌던 미덕이라고 생각해서, 그 부분을 가장 중요하게 지키고 있습니다.</p>
+</section>
+
+<section class="card">
+  <h2>3D로 옮길 때 지키는 것과 바꾸는 것</h2>
+  <p>단순히 그래픽만 입체로 바꾸는 것은 리메이크가 아니라고 생각합니다. 2D에서 성립하던 재미가 3D에서는 그대로 성립하지 않는 경우가 많기 때문입니다.
+  그래서 게임마다 <strong>무엇을 남기고 무엇을 다시 설계할지</strong>를 먼저 정하고 시작합니다.</p>
+  <h3>남기는 것 — 규칙의 뼈대</h3>
+  <p>"한 버튼으로 계속 떠 있어야 한다", "별을 다 모아야 문이 열린다", "떨어지면 끝이다" 같은 핵심 규칙은 그대로 둡니다.
+  이 부분을 건드리면 아는 게임이라는 느낌이 사라지고, 그러면 리메이크할 이유 자체가 없어집니다.</p>
+  <h3>바꾸는 것 — 공간과 조작</h3>
+  <p>대신 카메라 시점, 조작 방식, 장애물이 등장하는 방향은 3D에 맞게 새로 설계합니다.
+  예를 들어 <a href="guide-wing-dodge-3d.html">윙 닷지 3D</a>는 원래 위아래만 신경 쓰면 되던 게임인데, 3D에서는 좌우 벽이 생기므로 <strong>네 방향에서 장애물이 들어오도록</strong> 바꿨습니다.
+  <a href="guide-bounceball3d.html">3D 바운스볼</a>은 좌우로만 굴러가던 공을 앞뒤로도 움직이게 하면서, 대신 "저 발판까지 닿을 수 있는가"를 판단하는 재미를 새로 넣었습니다.</p>
+  <h3>덜어내는 것 — 진입 장벽</h3>
+  <p>3D가 되면 조작이 어려워지기 쉽습니다. 그래서 반대 방향의 장치도 함께 넣습니다.
+  카메라를 90°씩 돌려볼 수 있게 하고, 맵 전체를 내려다보는 기능을 넣고, 절차적으로 생성되는 스테이지는 <strong>반드시 클리어 가능한 경로가 있는지 검증한 것만</strong> 내보냅니다.
+  어려워서 재미있는 것과 불친절해서 답답한 것은 전혀 다른 문제라고 보기 때문입니다.</p>
+</section>
+
+<section class="card">
+  <h2>어떻게 만들었나</h2>
+  <p>게임은 모두 <strong>웹 표준 기술만으로</strong> 만들어졌습니다. 3D 렌더링에는 Three.js를 사용하고, 게임 로직은 자바스크립트로 작성했습니다.
+  게임 엔진으로 빌드한 결과물을 올린 것이 아니라 브라우저에서 바로 도는 코드라, 다운로드 용량이 작고 실행이 빠릅니다.</p>
+  <p>외부 서버에 의존하지 않는 것도 원칙 중 하나입니다. 점수, 모은 별, 해금한 아이템 같은 진행 데이터는 <strong>이용자의 브라우저 안(localStorage)에만 저장</strong>되고 어디로도 전송되지 않습니다.
+  회원가입이 없는 이유이기도 하고, 서버가 멈춰서 게임을 못 하게 되는 일이 없는 이유이기도 합니다.
+  대신 브라우저 데이터를 지우면 진행 상황도 함께 사라지고, PC와 스마트폰 사이에는 기록이 공유되지 않는다는 한계가 있습니다.</p>
+  <p>사양이 낮은 기기를 위해 저사양 모드를 제공하고, 스마트폰에서는 터치와 기울기 조작을 지원합니다.
+  또 윙 닷지 3D는 15개 언어를 지원하며, <a href="index.html">오락실 첫 화면</a>에서 고른 언어가 게임 안에도 그대로 적용됩니다.</p>
+</section>
+
+<section class="card">
+  <h2>지금 있는 게임</h2>
+  <div class="tocList">
+    <a class="tocItem" href="guide-wing-dodge-3d.html"><b>🪽 윙 닷지 3D</b><span>사방에서 조여오는 장애물을 피하는 비행 아케이드 · 4개 월드 · 새 5종</span></a>
+    <a class="tocItem" href="guide-bounceball3d.html"><b>🔴 3D 바운스볼</b><span>별을 모두 모아 EXIT까지 · 튜토리얼 10 + 모험 20스테이지</span></a>
+    <a class="tocItem" href="guide-skybounce3d.html"><b>☁️ 스카이 바운스 3D</b><span>튀는 공으로 하늘 끝까지 오르는 무한 상승</span></a>
+  </div>
+  <h3>준비 중</h3>
+  <p><strong>3D 스네이크</strong>와 <strong>3D 벽돌깨기</strong>를 만들고 있습니다.
+  스네이크는 평면에서 자라던 뱀을 입체 공간에서 어떻게 다룰지, 벽돌깨기는 공을 튕기는 각도 계산이 3D에서 어떻게 달라지는지가 각각의 숙제입니다.
+  두 게임 모두 "3D로 만들었더니 오히려 답답해지는" 함정이 있어서, 재미가 확인될 때까지는 공개하지 않을 생각입니다.</p>
+</section>
+
+<section class="card">
+  <h2>운영과 문의</h2>
+  <p>이 사이트는 한 사람이 취미로 만들고 운영합니다. 서버 비용과 도메인 유지를 위해 광고가 게재될 수 있지만,
+  <strong>게임 플레이 화면에는 광고를 넣지 않는다</strong>는 원칙을 지키려 합니다. 조작 버튼을 가리거나 실수로 눌리게 만드는 광고는 게임을 망친다고 생각하기 때문입니다.</p>
+  <p>개인정보 처리에 관한 내용은 <a href="privacy.html">개인정보처리방침</a>에서 확인하실 수 있습니다.</p>
+  <p>버그 제보, 게임 아이디어, 그 외 어떤 이야기든 환영합니다. <a href="mailto:korea885642@gmail.com">korea885642@gmail.com</a>으로 보내주세요.
+  "이 게임도 3D로 보고 싶다"는 제안이 특히 반갑습니다.</p>
+</section>
+
+</main>
+
+<footer>© 2026 Arcade3D · <a href="index.html">홈</a> · <a href="guides.html">게임 가이드</a> · <a href="privacy.html">개인정보처리방침</a></footer>
+
+</body>
+</html>
