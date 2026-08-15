@@ -107,6 +107,8 @@
     font-size: 12px; padding: 3px 10px; border-radius: 999px;
     background: rgba(255,255,255,.08); color: var(--dim);
   }
+  .tag.plays { background: rgba(255,79,216,.16); color: var(--neon-pink); font-weight: 700; }
+  .tag.top1 { background: rgba(255,217,59,.18); color: var(--neon-yellow); font-weight: 700; }
   .play {
     margin-top: 10px; text-align: center;
     padding: 10px; border-radius: 10px;
@@ -273,6 +275,20 @@
     render();
   });
 
+  // 플레이 수 — abacus에서 게임별 누적 플레이를 가져와 인기순 정렬에 사용
+  let playCounts = null; // { 게임id: 횟수 }, 로드 전에는 null → 등록 순서대로 표시
+  async function loadPlayCounts() {
+    const entries = await Promise.all(GAMES.filter(g => g.path).map(async g => {
+      try {
+        const r = await fetch(`${ARCADE_COUNTER}/get/${ARCADE_COUNTER_NS}/${g.id}`);
+        return [g.id, r.ok ? ((await r.json()).value || 0) : 0];
+      } catch { return [g.id, 0]; }
+    }));
+    playCounts = Object.fromEntries(entries);
+    render();
+  }
+  loadPlayCounts();
+
   const grid = document.getElementById('grid');
   function render() {
     const T = I18N[lang] || I18N.en;
@@ -283,18 +299,31 @@
     document.getElementById('about').innerHTML = T.aboutHtml;
     document.getElementById('foot').innerHTML = T.footHtml;
 
+    // 인기순 정렬: 플레이 수 많은 순, 동률이면 등록 순. 출시 예정은 항상 뒤로.
+    const games = [...GAMES];
+    if (playCounts) {
+      games.sort((a, b) =>
+        (!!b.path - !!a.path) || ((playCounts[b.id] || 0) - (playCounts[a.id] || 0)));
+    }
+    const topId = playCounts && games[0]?.path && (playCounts[games[0].id] || 0) > 0 ? games[0].id : null;
+    const fmt = new Intl.NumberFormat(ko ? 'ko' : 'en', { notation: 'compact' });
+
     grid.innerHTML = '';
-    for (const g of GAMES) {
+    for (const g of games) {
       const playable = !!g.path;
       const el = document.createElement(playable ? 'a' : 'div');
       el.className = 'game-card ' + (playable ? 'playable' : 'soon');
       if (playable) el.href = 'player.html?game=' + encodeURIComponent(g.id);
+      const count = playable && playCounts ? (playCounts[g.id] || 0) : 0;
+      const badges =
+        (g.id === topId ? `<span class="tag top1">🏆 ${ko ? '인기 1위' : '#1 Popular'}</span>` : '') +
+        (count > 0 ? `<span class="tag plays">🔥 ${fmt.format(count)} ${ko ? '플레이' : 'plays'}</span>` : '');
       el.innerHTML = `
         <div class="thumb" style="background: linear-gradient(135deg, ${g.color1}, ${g.color2})">${g.emoji}</div>
         <div class="body">
           <h2>${ko ? g.title : (g.titleEn || g.title)}</h2>
           <p>${ko ? g.desc : (g.descEn || g.desc)}</p>
-          <div class="tags">${g.tags.map(t => `<span class="tag">${T.tags[t] || t}</span>`).join('')}</div>
+          <div class="tags">${badges}${g.tags.map(t => `<span class="tag">${T.tags[t] || t}</span>`).join('')}</div>
           <div class="play">${playable ? T.play : T.soon}</div>
         </div>
         ${playable ? '' : '<div class="ribbon">COMING SOON</div>'}`;

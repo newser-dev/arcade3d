@@ -69,6 +69,10 @@ const GAMES = [
   },
 ];
 
+// 플레이 수 카운터 (abacus — 무료 공개 카운터, 키는 게임 id)
+const ARCADE_COUNTER = 'https://abacus.jasoncameron.dev';
+const ARCADE_COUNTER_NS = 'arcade3d-app';
+
 // 포털 공용: 언어 목록(게임과 동일) + 현재 언어 읽기/저장
 const ARCADE_LANGS = [
   ['en', 'English'], ['ko', '한국어'], ['ja', '日本語'], ['zh', '中文'],

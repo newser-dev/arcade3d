@@ -70,6 +70,14 @@
     document.getElementById('title').textContent = game.emoji + ' ' + title;
     document.title = title + (ko ? ' — 3D 오락실' : ' — Arcade3D');
     document.getElementById('frame').src = game.path;
+
+    // 플레이 수 집계 — 실서비스 도메인에서만, 탭 세션당 게임별 1회
+    try {
+      if (location.hostname === 'arcade3d.app' && !sessionStorage.getItem('played-' + id)) {
+        sessionStorage.setItem('played-' + id, '1');
+        fetch(`${ARCADE_COUNTER}/hit/${ARCADE_COUNTER_NS}/${id}`).catch(() => {});
+      }
+    } catch (e) { /* 시크릿 모드 등에서 sessionStorage가 막혀도 게임은 정상 실행 */ }
   } else {
     location.replace('index.html');
   }
