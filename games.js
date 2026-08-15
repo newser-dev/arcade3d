@@ -48,12 +48,12 @@ const GAMES = [
     title: '3D 스네이크',
     titleEn: 'Snake 3D',
     emoji: '🐍',
-    desc: '먹이를 먹고 길어지는 뱀 — 3D로 부활 예정',
-    descEn: 'Eat, grow, survive — the classic snake reborn in 3D (coming soon)',
+    desc: '카메라가 뱀 뒤를 따라간다! 좌우 회전만으로 먹이를 모으는 뱀 시점 스네이크',
+    descEn: 'The camera rides behind the snake — turn left and right to collect food',
     tags: ['클래식'],
     color1: '#7bd88f',
     color2: '#2e8b57',
-    path: '', // 출시 예정
+    path: 'games/snake3d/index.html',
   },
   {
     id: 'breakout3d',

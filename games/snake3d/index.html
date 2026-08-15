@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>3D 스네이크 — 뱀 시점으로 즐기는 3D 스네이크 게임</title>
+<meta name="description" content="카메라가 뱀 뒤를 따라가는 3D 스네이크. 좌우 회전만으로 조종하며 먹이를 먹고 길어집니다. 벽과 자기 몸에 부딪히면 끝. 무료, 설치 없음.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="3D 스네이크 — 뱀 시점 스네이크 게임">
+<meta property="og:description" content="뱀 뒤를 따라가는 카메라로 즐기는 3D 스네이크. 브라우저에서 바로 플레이.">
+<meta property="og:url" content="https://arcade3d.app/player.html?game=snake3d">
+<meta name="twitter:card" content="summary_large_image">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6240593008907807"
+     crossorigin="anonymous"></script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-FQD6KVG3C0"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-FQD6KVG3C0');
+</script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #0a1020; touch-action: none; }
+  body { font-family: 'Segoe UI', 'Malgun Gothic', sans-serif; user-select: none; -webkit-user-select: none; }
+  #c { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+
+  /* ── 오버레이 ── */
+  .overlay {
+    position: fixed; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 16px;
+    background: rgba(8, 14, 28, .8);
+    z-index: 10; color: #fff; text-align: center; padding: 24px;
+    animation: fadeIn .18s ease;
+  }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .hidden { display: none !important; }
+
+  .title {
+    font-size: clamp(34px, 8vw, 54px); font-weight: 900; letter-spacing: -1px; line-height: 1.15;
+    color: #fff;
+  }
+  .title em { font-style: normal; color: #7bd88f; }
+  .subtitle { font-size: 14px; color: #9fb0c4; line-height: 1.75; }
+
+  .btn {
+    border: none; cursor: pointer; color: #08210f; font-weight: 800; font-size: 18px;
+    padding: 14px 46px; border-radius: 14px; font-family: inherit;
+    background: #7bd88f;
+    transition: transform .1s, filter .12s;
+  }
+  .btn:hover { filter: brightness(1.07); }
+  .btn:active { transform: scale(.97); }
+  .btn.small {
+    font-size: 14px; font-weight: 700; padding: 11px 30px; color: #dfe6ee;
+    background: transparent; border: 1px solid rgba(255,255,255,.26);
+  }
+  .btn.small:hover { background: rgba(255,255,255,.07); filter: none; }
+  a.btn { text-decoration: none; display: inline-block; }
+  .btnCol { display: flex; flex-direction: column; gap: 10px; align-items: center; margin-top: 6px; }
+
+  .controls { font-size: 12.5px; color: #8a9ab0; line-height: 1.9; }
+  .controls b { color: #dfe6ee; font-weight: 700; }
+  #menuBest { font-size: 14px; color: #fff; font-weight: 700; }
+  #menuBest:empty { display: none; }
+
+  /* ── HUD ── */
+  #hud { position: fixed; top: 0; left: 0; right: 0; z-index: 5; pointer-events: none; }
+  #scoreNum {
+    position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+    font-size: 44px; font-weight: 900; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,.45);
+  }
+  #scoreNum.pop { animation: pop .25s ease; }
+  @keyframes pop {
+    0% { transform: translateX(-50%) scale(1); }
+    40% { transform: translateX(-50%) scale(1.14); }
+    100% { transform: translateX(-50%) scale(1); }
+  }
+  #lenTag {
+    position: absolute; top: 64px; left: 50%; transform: translateX(-50%);
+    font-size: 12px; font-weight: 600; color: #b9c6d6; white-space: nowrap;
+    text-shadow: 0 1px 4px rgba(0,0,0,.5);
+  }
+
+  .iconBtn {
+    position: fixed; top: 12px; z-index: 6; pointer-events: auto;
+    width: 40px; height: 40px; border-radius: 10px; border: 1px solid rgba(255,255,255,.13);
+    cursor: pointer; background: rgba(8,14,28,.5); color: #fff;
+    display: flex; align-items: center; justify-content: center; font-size: 16px;
+    transition: background .12s, transform .1s;
+  }
+  .iconBtn:hover { background: rgba(8,14,28,.75); }
+  .iconBtn:active { transform: scale(.94); }
+  #sndBtn { right: 12px; }
+  #pauseBtn { right: 60px; }
+
+  /* ── 회전 버튼 ── */
+  #turnBar {
+    position: fixed; bottom: 22px; left: 0; right: 0; z-index: 6;
+    display: flex; justify-content: space-between; padding: 0 26px; pointer-events: none;
+  }
+  .turnBtn {
+    pointer-events: auto; width: 76px; height: 76px; border-radius: 50%;
+    border: 1px solid rgba(123,216,143,.4); background: rgba(123,216,143,.14);
+    color: #7bd88f; font-size: 30px; cursor: pointer; font-family: inherit;
+    display: flex; align-items: center; justify-content: center;
+    transition: background .1s, transform .08s;
+  }
+  .turnBtn:active { background: rgba(123,216,143,.34); transform: scale(.93); }
+
+  /* ── 게임오버 패널 ── */
+  .panel {
+    background: #101c2e; border: 1px solid rgba(255,255,255,.09);
+    border-radius: 18px; padding: 30px 46px 26px;
+    display: flex; flex-direction: column; align-items: center; gap: 9px;
+    animation: panelIn .22s ease; max-width: min(92vw, 380px);
+  }
+  @keyframes panelIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  .overLabel { font-size: 12px; font-weight: 700; letter-spacing: 3px; color: #8a9ab0; }
+  #overScore { font-size: 56px; font-weight: 900; color: #fff; line-height: 1.1; }
+  #overScore small { font-size: 20px; color: #9fb0c4; font-weight: 700; }
+  #overBest { font-size: 14px; color: #9fb0c4; }
+  #overBest b { color: #fff; }
+  #overCause { font-size: 13px; color: #ff7a6b; font-weight: 700; }
+  .newRecord { color: #7bd88f; font-weight: 800; }
+
+  #hint { position: fixed; bottom: 8px; left: 0; right: 0; text-align: center;
+    z-index: 5; font-size: 11px; color: rgba(255,255,255,.45); pointer-events: none; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<div id="hud" class="hidden">
+  <div id="scoreNum">0</div>
+  <div id="lenTag"></div>
+</div>
+<button id="sndBtn" class="iconBtn">🔊</button>
+<button id="pauseBtn" class="iconBtn hidden">⏸</button>
+
+<div id="turnBar" class="hidden">
+  <button class="turnBtn" id="leftBtn">⟲</button>
+  <button class="turnBtn" id="rightBtn">⟳</button>
+</div>
+
+<!-- 시작 화면 -->
+<div id="menu" class="overlay">
+  <div class="title">3D <em>스네이크</em></div>
+  <div class="subtitle">카메라가 뱀 뒤를 따라갑니다<br>좌우로 방향만 틀어 먹이를 모으세요</div>
+  <div id="menuBest"></div>
+  <button class="btn" id="startBtn">게임 시작</button>
+  <div class="controls">
+    🖥️ <b>← →</b> 또는 <b>A D</b> — 좌·우 회전 &nbsp;·&nbsp; <b>P</b> 일시정지<br>
+    📱 화면 <b>왼쪽/오른쪽 탭</b> 또는 아래 <b>⟲ ⟳</b> 버튼
+  </div>
+</div>
+
+<!-- 게임오버 -->
+<div id="over" class="overlay hidden">
+  <div class="panel">
+    <div class="overLabel">GAME OVER</div>
+    <div id="overCause"></div>
+    <div id="overScore">0</div>
+    <div id="overBest"></div>
+    <div class="btnCol">
+      <button class="btn" id="retryBtn">다시 하기</button>
+      <button class="btn small" id="menuBtn">메인 메뉴</button>
+    </div>
+  </div>
+</div>
+
+<!-- 일시정지 -->
+<div id="paused" class="overlay hidden">
+  <div class="title" style="font-size:32px">일시정지</div>
+  <div class="btnCol">
+    <button class="btn" id="resumeBtn">계속 하기</button>
+    <button class="btn small" id="pauseMenuBtn">메인 메뉴</button>
+  </div>
+</div>
+
+<div id="hint" class="hidden">벽과 자기 몸에 닿으면 끝납니다</div>
+
+<script type="module">
+import * as THREE from './three.module.js';
+
+// ───────────────────────── 설정 ─────────────────────────
+const N = 21;                 // 격자 한 변 (홀수여야 중앙 시작이 깔끔함)
+const CELL = 1;               // 격자 한 칸 크기
+const WALL_H = 1.2;           // 벽 높이
+const STEP_MAX = 0.20;        // 시작 이동 간격(초)
+const STEP_MIN = 0.085;       // 최고 속도일 때 간격
+const SPEED_UP_AT = 30;       // 이 점수에서 최고 속도 도달
+const START_LEN = 4;
+const CAM_DIST = 5.0, CAM_H = 8.2, CAM_LOOK = 4.5;   // 몸에 시야가 가리지 않도록 위에서 내려다보는 추적 시점
+const LS_BEST = 'snake3d-best';
+const LS_SND = 'snake3d-snd';
+
+// 격자 좌표 → 월드 좌표
+const wx = gx => (gx - (N - 1) / 2) * CELL;
+
+// 방향: 0=북(-z), 1=동(+x), 2=남(+z), 3=서(-x)
+const DIRS = [{ x: 0, z: -1 }, { x: 1, z: 0 }, { x: 0, z: 1 }, { x: -1, z: 0 }];
+
+// ───────────────────────── 렌더러 ─────────────────────────
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0a1020);
+scene.fog = new THREE.Fog(0x0a1020, 18, 40);
+
+const camera = new THREE.PerspectiveCamera(62, 1, 0.1, 200);
+
+scene.add(new THREE.HemisphereLight(0xcfe6ff, 0x16233c, 1.05));
+const sun = new THREE.DirectionalLight(0xffffff, 0.85);
+sun.position.set(6, 14, 8);
+scene.add(sun);
+
+function resize() {
+  const w = innerWidth, h = innerHeight;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+}
+addEventListener('resize', resize);
+resize();
+
+// ───────────────────────── 바닥 ─────────────────────────
+function makeFloorTexture() {
+  const S = 64, cv = document.createElement('canvas');
+  cv.width = cv.height = S * 2;
+  const g = cv.getContext('2d');
+  const colors = ['#132038', '#0f1a2e'];
+  for (let i = 0; i < 2; i++) for (let j = 0; j < 2; j++) {
+    g.fillStyle = colors[(i + j) % 2];
+    g.fillRect(i * S, j * S, S, S);
+  }
+  g.strokeStyle = 'rgba(123,216,143,.10)';
+  g.lineWidth = 2;
+  g.strokeRect(0, 0, S, S); g.strokeRect(S, S, S, S);
+  const tex = new THREE.CanvasTexture(cv);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(N / 2, N / 2);
+  return tex;
+}
+const floor = new THREE.Mesh(
+  new THREE.PlaneGeometry(N * CELL, N * CELL),
+  new THREE.MeshStandardMaterial({ map: makeFloorTexture(), roughness: .95 })
+);
+floor.rotation.x = -Math.PI / 2;
+scene.add(floor);
+
+// ───────────────────────── 벽 ─────────────────────────
+const wallMat = new THREE.MeshStandardMaterial({ color: 0x2b3f63, roughness: .7, metalness: .1 });
+const wallTop = new THREE.MeshStandardMaterial({ color: 0x7bd88f, emissive: 0x2f6b3d, roughness: .5 });
+{
+  const half = (N * CELL) / 2, t = 0.5;
+  const mk = (w, d, x, z) => {
+    const m = new THREE.Mesh(new THREE.BoxGeometry(w, WALL_H, d), wallMat);
+    m.position.set(x, WALL_H / 2, z);
+    scene.add(m);
+    const cap = new THREE.Mesh(new THREE.BoxGeometry(w, 0.1, d), wallTop);
+    cap.position.set(x, WALL_H + 0.05, z);
+    scene.add(cap);
+  };
+  mk(N * CELL + t * 2, t, 0, -half - t / 2);
+  mk(N * CELL + t * 2, t, 0, half + t / 2);
+  mk(t, N * CELL, -half - t / 2, 0);
+  mk(t, N * CELL, half + t / 2, 0);
+}
+
+// ───────────────────────── 뱀 ─────────────────────────
+const headMat = new THREE.MeshStandardMaterial({ color: 0x9cf0ab, roughness: .45 });
+const bodyMatA = new THREE.MeshStandardMaterial({ color: 0x5cc474, roughness: .55 });
+const bodyMatB = new THREE.MeshStandardMaterial({ color: 0x3f9e58, roughness: .55 });
+const bodyGeo = new THREE.BoxGeometry(0.82, 0.7, 0.82);
+const headGeo = new THREE.BoxGeometry(0.92, 0.84, 0.92);
+const eyeGeo = new THREE.SphereGeometry(0.1, 10, 8);
+const eyeMat = new THREE.MeshBasicMaterial({ color: 0x101820 });
+
+const headGroup = new THREE.Group();
+{
+  const h = new THREE.Mesh(headGeo, headMat);
+  headGroup.add(h);
+  for (const sx of [-1, 1]) {
+    const e = new THREE.Mesh(eyeGeo, eyeMat);
+    e.position.set(0.22 * sx, 0.16, -0.44);
+    headGroup.add(e);
+  }
+}
+headGroup.position.y = 0.42;
+scene.add(headGroup);
+
+const bodyPool = [];
+function bodyMesh(i) {
+  while (bodyPool.length <= i) {
+    const m = new THREE.Mesh(bodyGeo, bodyPool.length % 2 ? bodyMatB : bodyMatA);
+    m.position.y = 0.35;
+    m.visible = false;
+    scene.add(m);
+    bodyPool.push(m);
+  }
+  return bodyPool[i];
+}
+
+// ───────────────────────── 먹이 ─────────────────────────
+const food = new THREE.Mesh(
+  new THREE.IcosahedronGeometry(0.34, 0),
+  new THREE.MeshStandardMaterial({ color: 0xff7a5c, emissive: 0x8c2c15, roughness: .3 })
+);
+food.position.y = 0.5;
+scene.add(food);
+const foodGlow = new THREE.PointLight(0xff8a66, 1.4, 5);
+scene.add(foodGlow);
+
+// 추적 시점이라 먹이가 화면 밖에 있을 수 있어, 위치를 알려주는 빛기둥을 세운다
+const beam = new THREE.Mesh(
+  new THREE.CylinderGeometry(0.16, 0.3, 14, 12, 1, true),
+  new THREE.MeshBasicMaterial({
+    color: 0xff9a78, transparent: true, opacity: 0.22,
+    depthWrite: false, side: THREE.DoubleSide,
+  })
+);
+beam.position.y = 7;
+scene.add(beam);
+
+// ───────────────────────── 사운드 ─────────────────────────
+let sndOn = localStorage.getItem(LS_SND) !== '0';
+let actx = null;
+const sndBtn = document.getElementById('sndBtn');
+function renderSnd() { sndBtn.textContent = sndOn ? '🔊' : '🔇'; }
+renderSnd();
+sndBtn.addEventListener('click', () => {
+  sndOn = !sndOn;
+  localStorage.setItem(LS_SND, sndOn ? '1' : '0');
+  renderSnd();
+});
+function beep(freq, dur, type = 'square', vol = 0.12, delay = 0) {
+  if (!sndOn) return;
+  try {
+    if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+    const t0 = actx.currentTime + delay;
+    const osc = actx.createOscillator(), g = actx.createGain();
+    osc.type = type; osc.frequency.setValueAtTime(freq, t0);
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(vol, t0 + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    osc.connect(g); g.connect(actx.destination);
+    osc.start(t0); osc.stop(t0 + dur + 0.02);
+  } catch (e) {}
+}
+const SFX = {
+  eat:  () => { beep(660, .09, 'sine', .16); beep(990, .12, 'sine', .14, .07); },
+  turn: () => beep(300, .04, 'square', .05),
+  die:  () => { beep(220, .18, 'sawtooth', .16); beep(140, .3, 'sawtooth', .14, .14); },
+};
+
+// ───────────────────────── 상태 ─────────────────────────
+let cells = [];        // [{x,z}] 0=머리
+let prevCells = [];
+let dirIndex = 0;
+let queuedTurn = 0;    // -1 좌, +1 우 (한 스텝에 하나만)
+let foodCell = { x: 0, z: 0 };
+let score = 0, best = +(localStorage.getItem(LS_BEST) || 0);
+let stepT = 0, stepDur = STEP_MAX;
+let playing = false, paused = false, dead = false;
+let deathT = 0;
+const camForward = new THREE.Vector3(0, 0, -1);
+const camTarget = new THREE.Vector3();
+
+const el = id => document.getElementById(id);
+const hud = el('hud'), turnBar = el('turnBar'), hint = el('hint');
+
+function randEmptyCell() {
+  const taken = new Set(cells.map(c => c.x + ',' + c.z));
+  let tries = 0, c;
+  do {
+    c = { x: (Math.random() * N) | 0, z: (Math.random() * N) | 0 };
+    tries++;
+  } while (taken.has(c.x + ',' + c.z) && tries < 500);
+  return c;
+}
+
+function reset() {
+  const mid = (N - 1) >> 1;
+  cells = [];
+  for (let i = 0; i < START_LEN; i++) cells.push({ x: mid, z: mid + i });
+  prevCells = cells.map(c => ({ ...c }));
+  dirIndex = 0;
+  queuedTurn = 0;
+  score = 0;
+  stepT = 0;
+  stepDur = STEP_MAX;
+  dead = false; deathT = 0;
+  foodCell = randEmptyCell();
+  camForward.set(DIRS[dirIndex].x, 0, DIRS[dirIndex].z);
+  const hp = new THREE.Vector3(wx(cells[0].x), 0.42, wx(cells[0].z));
+  camera.position.set(hp.x - camForward.x * CAM_DIST, CAM_H, hp.z - camForward.z * CAM_DIST);
+  camTarget.copy(hp);
+  updateHUD();
+}
+
+function updateHUD() {
+  el('scoreNum').textContent = score;
+  el('lenTag').textContent = `길이 ${cells.length}` + (best ? ` · 최고 ${best}` : '');
+}
+
+function speedForScore(s) {
+  const t = Math.min(1, s / SPEED_UP_AT);
+  return STEP_MAX + (STEP_MIN - STEP_MAX) * t;
+}
+
+// ───────────────────────── 한 스텝 진행 ─────────────────────────
+function step() {
+  // 예약된 회전 적용
+  if (queuedTurn) {
+    dirIndex = (dirIndex + queuedTurn + 4) % 4;
+    queuedTurn = 0;
+  }
+  const d = DIRS[dirIndex];
+  const head = cells[0];
+  const nx = head.x + d.x, nz = head.z + d.z;
+
+  // 벽 충돌 → 즉사
+  if (nx < 0 || nx >= N || nz < 0 || nz >= N) return die('벽에 부딪혔습니다');
+
+  // 자기 몸 충돌 → 즉사 (꼬리 끝은 이번 스텝에 비워지므로 예외)
+  const lastIdx = cells.length - 1;
+  for (let i = 0; i < cells.length; i++) {
+    if (cells[i].x === nx && cells[i].z === nz) {
+      if (i === lastIdx) continue;   // 방금 빠져나갈 칸
+      return die('자기 몸에 부딪혔습니다');
+    }
+  }
+
+  prevCells = cells.map(c => ({ ...c }));
+  const ate = (nx === foodCell.x && nz === foodCell.z);
+  cells.unshift({ x: nx, z: nz });
+  if (!ate) cells.pop();
+  else {
+    score++;
+    stepDur = speedForScore(score);
+    foodCell = randEmptyCell();
+    SFX.eat();
+    el('scoreNum').classList.remove('pop');
+    void el('scoreNum').offsetWidth;
+    el('scoreNum').classList.add('pop');
+  }
+  updateHUD();
+}
+
+function die(cause) {
+  dead = true; playing = false; deathT = 0;
+  SFX.die();
+  const isNew = score > best;
+  if (isNew) { best = score; localStorage.setItem(LS_BEST, String(best)); }
+  el('overCause').textContent = cause;
+  el('overScore').innerHTML = `${score}<small> 점</small>`;
+  el('overBest').innerHTML = isNew
+    ? `<span class="newRecord">🎉 신기록!</span>`
+    : `최고 기록 <b>${best}</b>점`;
+  hud.classList.add('hidden');
+  turnBar.classList.add('hidden');
+  hint.classList.add('hidden');
+  el('pauseBtn').classList.add('hidden');
+  setTimeout(() => el('over').classList.remove('hidden'), 620);
+}
+
+// ───────────────────────── 조작 ─────────────────────────
+function turn(dir) {
+  if (!playing || paused || dead) return;
+  if (queuedTurn === 0) { queuedTurn = dir; SFX.turn(); }
+}
+addEventListener('keydown', e => {
+  if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') { e.preventDefault(); turn(-1); }
+  else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') { e.preventDefault(); turn(1); }
+  else if (e.key === 'p' || e.key === 'P') togglePause();
+});
+el('leftBtn').addEventListener('click', () => turn(-1));
+el('rightBtn').addEventListener('click', () => turn(1));
+// 화면 좌우 절반 탭
+canvas.addEventListener('pointerdown', e => {
+  if (!playing || paused) return;
+  turn(e.clientX < innerWidth / 2 ? -1 : 1);
+});
+
+function togglePause() {
+  if (!playing || dead) return;
+  paused = !paused;
+  el('paused').classList.toggle('hidden', !paused);
+}
+el('pauseBtn').addEventListener('click', togglePause);
+el('resumeBtn').addEventListener('click', togglePause);
+
+function startGame() {
+  reset();
+  playing = true; paused = false;
+  el('menu').classList.add('hidden');
+  el('over').classList.add('hidden');
+  el('paused').classList.add('hidden');
+  hud.classList.remove('hidden');
+  turnBar.classList.remove('hidden');
+  el('pauseBtn').classList.remove('hidden');
+  hint.classList.remove('hidden');
+  setTimeout(() => hint.classList.add('hidden'), 3200);
+}
+function toMenu() {
+  playing = false; paused = false; dead = false;
+  el('over').classList.add('hidden');
+  el('paused').classList.add('hidden');
+  hud.classList.add('hidden');
+  turnBar.classList.add('hidden');
+  el('pauseBtn').classList.add('hidden');
+  hint.classList.add('hidden');
+  el('menu').classList.remove('hidden');
+  showMenuBest();
+}
+el('startBtn').addEventListener('click', startGame);
+el('retryBtn').addEventListener('click', startGame);
+el('menuBtn').addEventListener('click', toMenu);
+el('pauseMenuBtn').addEventListener('click', toMenu);
+
+function showMenuBest() {
+  el('menuBest').textContent = best ? `최고 기록 ${best}점` : '';
+}
+showMenuBest();
+
+// ───────────────────────── 렌더 루프 ─────────────────────────
+const HEADLESS = new URLSearchParams(location.search).has('headless');
+const schedule = HEADLESS ? (cb => setTimeout(() => cb(performance.now()), 16)) : (cb => requestAnimationFrame(cb));
+
+const tmpA = new THREE.Vector3(), tmpB = new THREE.Vector3();
+let last = performance.now();
+
+function draw(now) {
+  schedule(draw);
+  const dt = Math.min(0.05, (now - last) / 1000);
+  last = now;
+
+  if (playing && !paused && !dead) {
+    stepT += dt;
+    while (stepT >= stepDur && playing) {
+      stepT -= stepDur;
+      step();
+    }
+  }
+  if (dead) deathT += dt;
+
+  const t = playing && !paused ? Math.min(1, stepT / stepDur) : (dead ? 1 : 0);
+
+  // 뱀 몸 위치 (이전 칸 → 현재 칸 보간)
+  const n = cells.length;
+  for (let i = 0; i < bodyPool.length; i++) bodyPool[i].visible = false;
+  let headX = 0, headZ = 0;
+  for (let i = 0; i < n; i++) {
+    const cur = cells[i];
+    const pv = prevCells[Math.min(i, prevCells.length - 1)] || cur;
+    const px = wx(pv.x) + (wx(cur.x) - wx(pv.x)) * t;
+    const pz = wx(pv.z) + (wx(cur.z) - wx(pv.z)) * t;
+    if (i === 0) {
+      headX = px; headZ = pz;
+    } else {
+      const m = bodyMesh(i - 1);
+      m.visible = true;
+      m.position.set(px, 0.35, pz);
+      const s = 1 - 0.16 * (i / n);
+      m.scale.setScalar(s);
+    }
+  }
+
+  // 머리
+  const d = DIRS[dirIndex];
+  headGroup.position.set(headX, dead ? 0.42 - Math.min(0.3, deathT * 0.7) : 0.42, headZ);
+  const targetYaw = Math.atan2(d.x, d.z) + Math.PI;
+  let yaw = headGroup.rotation.y;
+  let diff = ((targetYaw - yaw + Math.PI * 3) % (Math.PI * 2)) - Math.PI;
+  headGroup.rotation.y = yaw + diff * Math.min(1, dt * 14);
+  if (dead) headGroup.rotation.z += dt * 3;
+
+  // 먹이 연출
+  food.position.set(wx(foodCell.x), 0.5 + Math.sin(now / 320) * 0.1, wx(foodCell.z));
+  food.rotation.y += dt * 1.6;
+  food.rotation.x += dt * 0.9;
+  foodGlow.position.copy(food.position);
+  beam.position.set(wx(foodCell.x), 7, wx(foodCell.z));
+  beam.material.opacity = 0.16 + Math.sin(now / 260) * 0.06;
+
+  // 카메라: 뱀 뒤를 부드럽게 추적
+  tmpA.set(d.x, 0, d.z);
+  camForward.lerp(tmpA, 1 - Math.pow(0.0006, dt)).normalize();
+  const desiredX = headX - camForward.x * CAM_DIST;
+  const desiredZ = headZ - camForward.z * CAM_DIST;
+  tmpB.set(desiredX, CAM_H, desiredZ);
+  camera.position.lerp(tmpB, 1 - Math.pow(0.0015, dt));
+  tmpB.set(headX + camForward.x * CAM_LOOK, 0, headZ + camForward.z * CAM_LOOK);
+  camTarget.lerp(tmpB, 1 - Math.pow(0.0015, dt));
+  camera.lookAt(camTarget);
+
+  renderer.render(scene, camera);
+}
+
+reset();
+hud.classList.add('hidden');
+schedule(draw);
+
+// 자동 테스트용 훅
+window.__snake = {
+  start: startGame,
+  turn,
+  state: () => ({ score, len: cells.length, dead, playing, head: cells[0], dir: dirIndex }),
+};
+</script>
+</body>
+</html>

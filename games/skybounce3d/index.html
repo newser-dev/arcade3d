@@ -23,70 +23,125 @@
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { width: 100%; height: 100%; overflow: hidden; background: #7ec8e3; touch-action: none; }
-  body { font-family: 'Segoe UI', 'Malgun Gothic', sans-serif; user-select: none; -webkit-user-select: none; }
+  body { font-family: 'Pretendard', 'Segoe UI', 'Malgun Gothic', sans-serif; user-select: none; -webkit-user-select: none; }
   #c { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
 
+  /* ── 오버레이 공통 ── */
   .overlay {
     position: fixed; inset: 0; display: flex; flex-direction: column;
-    align-items: center; justify-content: center; gap: 14px;
-    background: rgba(10, 25, 50, 0.45); backdrop-filter: blur(4px);
-    z-index: 10; color: #fff; text-align: center; padding: 20px;
+    align-items: center; justify-content: center; gap: 18px;
+    background: rgba(10, 15, 26, .78);
+    z-index: 10; color: #fff; text-align: center; padding: 24px;
+    animation: fadeIn .18s ease;
   }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
   .hidden { display: none !important; }
 
+  /* ── 타이틀 ── */
   .title {
-    font-size: clamp(38px, 9vw, 64px); font-weight: 900; letter-spacing: 2px;
-    text-shadow: 0 4px 0 rgba(0,0,0,.25), 0 8px 24px rgba(0,0,0,.35);
-    background: linear-gradient(180deg, #fff 30%, #ffd76e);
-    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
-    filter: drop-shadow(0 4px 6px rgba(0,0,0,.35));
+    font-size: clamp(34px, 8vw, 52px); font-weight: 900; letter-spacing: -1px;
+    color: #fff; line-height: 1.15;
   }
-  .subtitle { font-size: 15px; opacity: .9; line-height: 1.7; }
+  .title em { font-style: normal; color: #ff5a3c; }
+  .subtitle { font-size: 14px; color: #aab6c6; line-height: 1.75; }
+
+  /* ── 버튼 ── */
   .btn {
-    border: none; cursor: pointer; color: #fff; font-weight: 800; font-size: 20px;
-    padding: 14px 44px; border-radius: 999px;
-    background: linear-gradient(180deg, #ffb347, #ff7b2e);
-    box-shadow: 0 6px 0 #c85a14, 0 10px 24px rgba(0,0,0,.35);
-    transition: transform .08s, box-shadow .08s;
+    border: none; cursor: pointer; color: #fff; font-weight: 800; font-size: 17px;
+    padding: 14px 46px; border-radius: 14px;
+    background: #ff5a3c;
+    transition: transform .1s, filter .12s;
   }
-  .btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #c85a14, 0 6px 14px rgba(0,0,0,.35); }
-  .btn.small { font-size: 15px; padding: 10px 28px; background: linear-gradient(180deg, #6db3f2, #3d78c9); box-shadow: 0 5px 0 #274f8c, 0 8px 18px rgba(0,0,0,.3); }
-  .btn.small:active { box-shadow: 0 1px 0 #274f8c, 0 4px 10px rgba(0,0,0,.3); }
-
-  .help {
-    display: flex; gap: 18px; flex-wrap: wrap; justify-content: center;
-    font-size: 13px; opacity: .95; margin-top: 4px;
+  .btn:hover { filter: brightness(1.06); }
+  .btn:active { transform: scale(.97); }
+  .btn.small {
+    font-size: 14px; font-weight: 700; padding: 11px 30px;
+    background: transparent; border: 1px solid rgba(255,255,255,.28); color: #dfe6ee;
   }
-  .help div { background: rgba(255,255,255,.12); border-radius: 12px; padding: 10px 16px; line-height: 1.6; }
-  .help b { color: #ffd76e; }
+  .btn.small:hover { background: rgba(255,255,255,.06); filter: none; }
+  a.btn { text-decoration: none; display: inline-block; }
+  .btnCol { display: flex; flex-direction: column; gap: 10px; align-items: center; margin-top: 8px; }
 
-  .legend { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; font-size: 12px; }
-  .legend span { display: inline-flex; align-items: center; gap: 6px; background: rgba(0,0,0,.25); padding: 6px 12px; border-radius: 999px; }
-  .dot { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+  /* ── 메뉴 ── */
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; font-size: 12px; color: #aab6c6; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
 
+  .controls { font-size: 12.5px; color: #8fa0b4; line-height: 1.8; }
+  .controls b { color: #dfe6ee; font-weight: 700; }
+
+  #menuBest { font-size: 14px; color: #fff; font-weight: 700; }
+  #menuBest:empty { display: none; }
+
+  /* ── HUD ── */
   #hud { position: fixed; top: 0; left: 0; right: 0; z-index: 5; pointer-events: none; }
   #floorNum {
-    position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
-    font-size: 42px; font-weight: 900; color: #fff;
-    text-shadow: 0 3px 0 rgba(0,0,0,.3), 0 6px 16px rgba(0,0,0,.3);
+    position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+    font-size: 44px; font-weight: 900; color: #fff;
+    text-shadow: 0 2px 10px rgba(0,0,0,.35);
   }
-  #floorNum small { font-size: 20px; font-weight: 700; }
+  #floorNum small { font-size: 18px; font-weight: 700; color: #eef2f7; }
+  #floorNum.pop { animation: floorPop .25s ease; }
+  @keyframes floorPop {
+    0% { transform: translateX(-50%) scale(1); }
+    40% { transform: translateX(-50%) scale(1.1); }
+    100% { transform: translateX(-50%) scale(1); }
+  }
   #bestTag {
-    position: absolute; top: 64px; left: 50%; transform: translateX(-50%);
-    font-size: 13px; font-weight: 700; color: #ffd76e; text-shadow: 0 2px 4px rgba(0,0,0,.5);
+    position: absolute; top: 66px; left: 50%; transform: translateX(-50%);
+    font-size: 12px; font-weight: 600; color: #d4dde7;
+    text-shadow: 0 1px 4px rgba(0,0,0,.45); white-space: nowrap;
   }
-  #sndBtn {
-    position: fixed; top: 12px; right: 12px; z-index: 6; pointer-events: auto;
-    width: 44px; height: 44px; border-radius: 50%; border: none; cursor: pointer;
-    background: rgba(0,0,0,.3); color: #fff; font-size: 20px;
+  #bestTag:empty { display: none; }
+
+  /* 층 돌파 토스트 */
+  #toast {
+    position: fixed; top: 27%; left: 50%; transform: translateX(-50%);
+    z-index: 7; pointer-events: none; font-size: 21px; font-weight: 800; color: #fff;
+    text-shadow: 0 2px 10px rgba(0,0,0,.4);
+    opacity: 0; white-space: nowrap;
+  }
+  #toast.show { animation: toastUp 1.4s ease forwards; }
+  @keyframes toastUp {
+    0% { opacity: 0; transform: translate(-50%, 10px); }
+    15% { opacity: 1; transform: translate(-50%, 0); }
+    75% { opacity: 1; }
+    100% { opacity: 0; transform: translate(-50%, -16px); }
   }
 
-  #overScore { font-size: 64px; font-weight: 900; color: #ffd76e; text-shadow: 0 4px 0 rgba(0,0,0,.3); }
-  #overScore small { font-size: 24px; color: #fff; }
-  #overBest { font-size: 16px; }
-  .newRecord { color: #7bffb2; font-weight: 900; animation: pop .5s ease infinite alternate; }
-  @keyframes pop { from { transform: scale(1); } to { transform: scale(1.12); } }
+  /* 우상단 아이콘 버튼 */
+  .iconBtn {
+    position: fixed; top: 12px; z-index: 6; pointer-events: auto;
+    width: 40px; height: 40px; border-radius: 10px; border: 1px solid rgba(255,255,255,.12);
+    cursor: pointer; background: rgba(10,15,26,.45); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    transition: background .12s, transform .1s;
+  }
+  .iconBtn:hover { background: rgba(10,15,26,.7); }
+  .iconBtn:active { transform: scale(.94); }
+  #sndBtn { right: 12px; }
+  #pauseBtn { right: 60px; }
 
+  /* ── 게임오버 패널 ── */
+  .panel {
+    background: #111a29; border: 1px solid rgba(255,255,255,.08);
+    border-radius: 18px; padding: 32px 48px 28px;
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+    animation: panelIn .22s ease;
+    max-width: min(92vw, 380px);
+  }
+  @keyframes panelIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .overLabel { font-size: 13px; font-weight: 700; letter-spacing: 3px; color: #8fa0b4; }
+  #overScore { font-size: 58px; font-weight: 900; color: #fff; line-height: 1.1; }
+  #overScore small { font-size: 22px; color: #aab6c6; font-weight: 700; }
+  #overBest { font-size: 14px; color: #aab6c6; }
+  #overBest b { color: #fff; }
+  .newRecord { color: #ff5a3c; font-weight: 800; }
+
+  /* ── 조이스틱 / 힌트 ── */
   #joyBase {
     position: fixed; z-index: 4; width: 96px; height: 96px; border-radius: 50%;
     border: 2px solid rgba(255,255,255,.55); background: rgba(255,255,255,.12);
@@ -96,7 +151,7 @@
     position: fixed; z-index: 4; width: 42px; height: 42px; border-radius: 50%;
     background: rgba(255,255,255,.75); pointer-events: none; display: none;
   }
-  #pauseHint { position: fixed; bottom: 10px; right: 14px; z-index: 5; font-size: 11px; color: rgba(255,255,255,.6); pointer-events: none; }
+  #pauseHint { position: fixed; bottom: 10px; right: 14px; z-index: 5; font-size: 11px; color: rgba(255,255,255,.55); pointer-events: none; }
 </style>
 </head>
 <body>
@@ -106,43 +161,48 @@
   <div id="floorNum">0<small>층</small></div>
   <div id="bestTag"></div>
 </div>
-<button id="sndBtn">🔊</button>
+<button id="sndBtn" class="iconBtn"></button>
+<button id="pauseBtn" class="iconBtn hidden"><svg width="13" height="14" viewBox="0 0 13 14"><rect x="1" width="4" height="14" rx="1.2" fill="#fff"/><rect x="8" width="4" height="14" rx="1.2" fill="#fff"/></svg></button>
+<div id="toast"></div>
 <div id="joyBase"></div>
 <div id="joyNub"></div>
 <div id="pauseHint" class="hidden">P: 일시정지</div>
 
 <!-- 시작 화면 -->
 <div id="menu" class="overlay">
-  <div class="title">스카이 바운스 3D</div>
-  <div class="subtitle">쉴 새 없이 튀어 오르는 공!<br>발판을 골라 밟으며 하늘 끝까지 올라가자</div>
+  <div class="title">스카이 바운스 <em>3D</em></div>
+  <div class="subtitle">쉴 새 없이 튀는 공을 조종해<br>발판을 밟고 최대한 높이 올라가세요</div>
   <div class="legend">
     <span><i class="dot" style="background:#58c96b"></i>일반</span>
     <span><i class="dot" style="background:#f2a13c"></i>1회용</span>
     <span><i class="dot" style="background:#b06df2"></i>스프링</span>
     <span><i class="dot" style="background:#4fa8f2"></i>이동</span>
-    <span><i class="dot" style="background:#e84f4f"></i>가시 ☠️</span>
+    <span><i class="dot" style="background:#e84f4f"></i>가시</span>
   </div>
-  <div class="help">
-    <div>🖥️ <b>방향키 / WASD</b><br>앞뒤·좌우 이동</div>
-    <div>📱 <b>화면 드래그</b><br>가상 조이스틱</div>
-  </div>
-  <div id="menuBest" style="font-size:14px;color:#ffd76e;font-weight:700;"></div>
+  <div class="controls"><b>WASD · 방향키</b> 이동&ensp;·&ensp;모바일은 <b>드래그</b> 조이스틱</div>
+  <div id="menuBest"></div>
   <button class="btn" id="startBtn">게임 시작</button>
+  <a class="btn small" href="../../index.html" target="_top">오락실로 나가기</a>
 </div>
 
 <!-- 게임오버 화면 -->
 <div id="over" class="overlay hidden">
-  <div style="font-size:26px;font-weight:900;">☁️ 게임 오버</div>
-  <div id="overScore">0<small>층</small></div>
-  <div id="overBest"></div>
-  <button class="btn" id="retryBtn">다시 하기</button>
-  <button class="btn small" id="menuBtn">메인 메뉴</button>
+  <div class="panel">
+    <div class="overLabel">게임 오버</div>
+    <div id="overScore">0<small>층</small></div>
+    <div id="overBest"></div>
+    <div class="btnCol">
+      <button class="btn" id="retryBtn">다시 하기</button>
+      <button class="btn small" id="menuBtn">메인 메뉴</button>
+    </div>
+  </div>
 </div>
 
 <!-- 일시정지 -->
 <div id="paused" class="overlay hidden">
-  <div style="font-size:30px;font-weight:900;">⏸️ 일시정지</div>
+  <div style="font-size:24px;font-weight:800;">일시정지</div>
   <button class="btn" id="resumeBtn">계속 하기</button>
+  <button class="btn small" id="pausedMenuBtn">메인 메뉴</button>
 </div>
 
 <script type="module">
@@ -221,19 +281,83 @@ const PLAT_COLOR = {
   [PLAT.SPIKE]: 0xe84f4f,
 };
 const platGeo = new THREE.BoxGeometry(3, 0.5, 3);
-const sideMats = {};
-for (const k in PLAT_COLOR) {
-  sideMats[k] = new THREE.MeshStandardMaterial({ color: PLAT_COLOR[k], roughness: 0.6 });
+
+// ── 블록 비주얼: 밝은 윗면 타일 + 어두운 옆면 투톤, 종류별 윗면 무늬 ──
+function shade(hex, f) {
+  const c = new THREE.Color(hex);
+  c.multiplyScalar(f);
+  return c;
 }
-const spikeGeo = new THREE.ConeGeometry(0.22, 0.55, 6);
-const spikeMat = new THREE.MeshStandardMaterial({ color: 0xd63a3a, roughness: 0.4 });
-const springGeo = new THREE.CylinderGeometry(0.45, 0.45, 0.35, 12);
-const springMat = new THREE.MeshStandardMaterial({ color: 0xe6d3ff, roughness: 0.4 });
+function topTexture(hex, drawFn) {
+  const cv = document.createElement('canvas');
+  cv.width = cv.height = 128;
+  const g = cv.getContext('2d');
+  g.fillStyle = '#' + new THREE.Color(hex).getHexString();
+  g.fillRect(0, 0, 128, 128);
+  // 안쪽 라운드 테두리 → 타일 느낌
+  g.strokeStyle = 'rgba(255,255,255,.26)';
+  g.lineWidth = 5;
+  g.beginPath();
+  g.roundRect(7, 7, 114, 114, 14);
+  g.stroke();
+  if (drawFn) drawFn(g);
+  const tx = new THREE.CanvasTexture(cv);
+  tx.anisotropy = 4;
+  return tx;
+}
+const TOP_DRAW = {
+  [PLAT.CRUMBLE]: g => {             // 금 간 무늬
+    g.strokeStyle = 'rgba(90,45,0,.38)'; g.lineWidth = 3; g.lineCap = 'round';
+    g.beginPath();
+    g.moveTo(64, 16); g.lineTo(52, 50); g.lineTo(72, 66); g.lineTo(58, 104);
+    g.moveTo(52, 50); g.lineTo(20, 62);
+    g.moveTo(72, 66); g.lineTo(106, 80);
+    g.stroke();
+  },
+  [PLAT.MOVING]: g => {              // 이동 방향 화살표
+    g.fillStyle = 'rgba(255,255,255,.42)';
+    g.beginPath(); g.moveTo(18, 64); g.lineTo(38, 47); g.lineTo(38, 81); g.closePath(); g.fill();
+    g.beginPath(); g.moveTo(110, 64); g.lineTo(90, 47); g.lineTo(90, 81); g.closePath(); g.fill();
+  },
+  [PLAT.SPIKE]: g => {               // 위험 사선
+    g.strokeStyle = 'rgba(0,0,0,.2)'; g.lineWidth = 7;
+    for (let i = -128; i < 256; i += 28) {
+      g.beginPath(); g.moveTo(i, 128); g.lineTo(i + 128, 0); g.stroke();
+    }
+  },
+};
+const platMats = {};                 // type → [+x, -x, 윗면, 바닥, +z, -z]
+for (const k in PLAT_COLOR) {
+  const side = new THREE.MeshStandardMaterial({ color: shade(PLAT_COLOR[k], 0.62), roughness: 0.7 });
+  const bottom = new THREE.MeshStandardMaterial({ color: shade(PLAT_COLOR[k], 0.45), roughness: 0.8 });
+  const top = new THREE.MeshStandardMaterial({ map: topTexture(PLAT_COLOR[k], TOP_DRAW[k]), roughness: 0.55 });
+  platMats[k] = [side, side, top, bottom, side, side];
+}
+
+const spikeGeo = new THREE.ConeGeometry(0.2, 0.5, 6);
+const spikeMat = new THREE.MeshStandardMaterial({ color: 0xb92f2f, roughness: 0.35, metalness: 0.15 });
+
+// 스프링 = 점프대: 코일 3링 + 윗판 (공과 같은 색 → "여기서 튄다"는 신호)
+const coilMat = new THREE.MeshStandardMaterial({ color: 0xdfe6ee, roughness: 0.35, metalness: 0.35 });
+const capMat = new THREE.MeshStandardMaterial({ color: 0xff5a3c, roughness: 0.45 });
+function makeSpring() {
+  const g = new THREE.Group();
+  for (let i = 0; i < 3; i++) {
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.34, 0.055, 8, 20), coilMat);
+    ring.rotation.x = Math.PI / 2;
+    ring.position.y = 0.08 + i * 0.14;
+    g.add(ring);
+  }
+  const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.46, 0.4, 0.1, 16), capMat);
+  cap.position.y = 0.46;
+  g.add(cap);
+  return g;
+}
 
 let platforms = [];
 
 function makePlatform(type, x, y, z) {
-  const mesh = new THREE.Mesh(platGeo, sideMats[type]);
+  const mesh = new THREE.Mesh(platGeo, platMats[type]);
   mesh.position.set(x, y, z);
   if (type === PLAT.SPIKE) {
     for (let i = 0; i < 9; i++) {
@@ -242,8 +366,8 @@ function makePlatform(type, x, y, z) {
       mesh.add(s);
     }
   } else if (type === PLAT.SPRING) {
-    const s = new THREE.Mesh(springGeo, springMat);
-    s.position.y = 0.42;
+    const s = makeSpring();
+    s.position.y = 0.25;
     mesh.add(s);
     mesh.userData.springMesh = s;
   }
@@ -255,6 +379,7 @@ function makePlatform(type, x, y, z) {
     moveSpd: 0, moveAxis: Math.random() < 0.5 ? 'x' : 'z',
     baseX: x, baseZ: z, phase: Math.random() * Math.PI * 2,
   };
+  if (type === PLAT.MOVING && p.moveAxis === 'z') mesh.rotation.y = Math.PI / 2; // 화살표를 이동축에 정렬
   platforms.push(p);
   return p;
 }
@@ -330,7 +455,9 @@ const sfx = {
   ui: () => beep(600, 0.06, 'sine', 0.1),
 };
 const sndBtn = document.getElementById('sndBtn');
-function updSndBtn() { sndBtn.textContent = sndOn ? '🔊' : '🔇'; }
+const SVG_SND_ON = '<svg width="17" height="17" viewBox="0 0 24 24"><path d="M3 9v6h4l5 4V5L7 9H3z" fill="#fff"/><path d="M16 8.5a5 5 0 0 1 0 7" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>';
+const SVG_SND_OFF = '<svg width="17" height="17" viewBox="0 0 24 24"><path d="M3 9v6h4l5 4V5L7 9H3z" fill="#fff" opacity=".55"/><path d="M16 9.5l5 5M21 9.5l-5 5" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".55"/></svg>';
+function updSndBtn() { sndBtn.innerHTML = sndOn ? SVG_SND_ON : SVG_SND_OFF; }
 sndBtn.addEventListener('click', () => {
   sndOn = !sndOn;
   localStorage.setItem(LS_SND, sndOn ? '1' : '0');
@@ -453,6 +580,7 @@ function resetGame() {
   maxY = 0; camY = 0; dead = false; deadTimer = 0; squash = 0; shake = 0;
   lastSafe = { x: 0, z: 0 };
   overReady = false;
+  lastFloorShown = -1; lastMilestone = 0;
   // 시작 발판 (넓음)
   const base = makePlatform(PLAT.NORMAL, 0, 0, 0);
   base.mesh.scale.set(3, 1, 3); base.hx = 4.5; base.hz = 4.5;
@@ -469,6 +597,7 @@ function startGame() {
   overEl.classList.add('hidden');
   hudEl.classList.remove('hidden');
   $('pauseHint').classList.remove('hidden');
+  $('pauseBtn').classList.remove('hidden');
 }
 
 function gameOver() {
@@ -478,10 +607,11 @@ function gameOver() {
   if (isNew) { best = floor; localStorage.setItem(LS_BEST, String(best)); }
   $('overScore').innerHTML = floor + '<small>층</small>';
   $('overBest').innerHTML = isNew
-    ? '<span class="newRecord">🎉 신기록 달성!</span>'
-    : `최고 기록: <b style="color:#ffd76e">${best}층</b>`;
+    ? '<span class="newRecord">신기록</span>'
+    : `최고 기록 <b>${best}층</b>`;
   hudEl.classList.add('hidden');
   $('pauseHint').classList.add('hidden');
+  $('pauseBtn').classList.add('hidden');
   joy = null; joyHide();
   overEl.classList.remove('hidden');
   overReady = false;
@@ -500,19 +630,54 @@ $('menuBtn').addEventListener('click', () => {
   showMenu();
 });
 $('resumeBtn').addEventListener('click', () => { sfx.ui(); resumeGame(); });
+$('pauseBtn').addEventListener('click', () => { if (state === 'playing') { sfx.ui(); pauseGame(); } });
+$('pausedMenuBtn').addEventListener('click', () => {
+  sfx.ui();
+  state = 'menu';
+  pausedEl.classList.add('hidden');
+  hudEl.classList.add('hidden');
+  $('pauseHint').classList.add('hidden');
+  $('pauseBtn').classList.add('hidden');
+  joy = null; joyHide();
+  showMenu();
+});
 document.addEventListener('visibilitychange', () => {
   if (!HEADLESS && document.hidden && state === 'playing') pauseGame();
 });
 
 function showMenu() {
-  $('menuBest').textContent = best > 0 ? `🏆 최고 기록: ${best}층` : '';
+  $('menuBest').textContent = best > 0 ? `최고 기록 ${best}층` : '';
   menuEl.classList.remove('hidden');
+}
+
+// 층수 팝 애니메이션 + 층 돌파 토스트
+let lastFloorShown = -1;
+let lastMilestone = 0;
+const MILESTONES = [10, 25, 50, 100, 150, 200, 300];
+
+function showToast(msg) {
+  const tEl = $('toast');
+  tEl.textContent = msg;
+  tEl.classList.remove('show'); void tEl.offsetWidth; tEl.classList.add('show');
 }
 
 function updateHUD() {
   const floor = Math.floor(maxY / FLOOR_H);
-  $('floorNum').innerHTML = floor + '<small>층</small>';
-  $('bestTag').textContent = (best > 0 && floor > best) ? '🎉 신기록 경신 중!' : (best > 0 ? `최고 ${best}층` : '');
+  if (floor !== lastFloorShown) {
+    $('floorNum').innerHTML = floor + '<small>층</small>';
+    if (floor > lastFloorShown && lastFloorShown >= 0) {
+      const fn = $('floorNum');
+      fn.classList.remove('pop'); void fn.offsetWidth; fn.classList.add('pop');
+    }
+    lastFloorShown = floor;
+    for (const m of MILESTONES) {
+      if (floor >= m && lastMilestone < m) {
+        lastMilestone = m;
+        showToast(`${m}층`);
+      }
+    }
+  }
+  $('bestTag').textContent = (best > 0 && floor > best) ? '신기록 경신 중' : (best > 0 ? `최고 ${best}층` : '');
 }
 
 // ───────────────────────── 게임 루프 ─────────────────────────
@@ -622,7 +787,6 @@ function tick(now) {
     if (p.mesh.userData.springMesh) {
       const sm = p.mesh.userData.springMesh;
       sm.scale.y += (1 - sm.scale.y) * Math.min(1, 10 * dt);
-      sm.position.y = 0.25 + sm.scale.y * 0.17;
     }
     if (p.y < camY - 20) { scene.remove(p.mesh); platforms.splice(i, 1); }
   }
