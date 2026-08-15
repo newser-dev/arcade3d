@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>3D 스네이크 공략 — 뱀 시점에 적응하는 법 | 3D 오락실</title>
+<meta name="description" content="카메라가 뱀 뒤를 따라가는 3D 스네이크의 조작법과 공략. 회전 감각 익히기, 빛기둥으로 먹이 찾기, 긴 몸을 안전하게 접는 요령을 정리했습니다.">
+<link rel="canonical" href="https://arcade3d.app/guide-snake3d.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="3D 스네이크 공략 — 뱀 시점에 적응하는 법">
+<meta property="og:description" content="추적 카메라 스네이크의 조작법과 고득점 요령.">
+<meta property="og:url" content="https://arcade3d.app/guide-snake3d.html">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="games/wing-dodge-3d/icon-600.png">
+<link rel="stylesheet" href="content.css">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6240593008907807"
+     crossorigin="anonymous"></script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-FQD6KVG3C0"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-FQD6KVG3C0');
+</script>
+</head>
+<body>
+
+<header class="page">
+  <h1>3D 스네이크 공략</h1>
+  <div class="lead">카메라가 뱀 뒤를 따라가는 추적 시점 스네이크</div>
+  <div><a class="back" href="guides.html">← 게임 가이드 목록</a></div>
+</header>
+
+<main>
+
+<section class="card">
+  <h2>어떤 게임인가요?</h2>
+  <p>규칙은 원조 스네이크 그대로입니다. 먹이를 먹으면 길어지고, 벽이나 자기 몸에 부딪히면 끝.
+  다른 것은 딱 하나 — <strong>화면을 위에서 내려다보는 대신, 카메라가 뱀의 등 뒤에 붙어 함께 달립니다.</strong></p>
+  <p>이 차이가 게임을 완전히 바꿉니다. 위에서 볼 때는 내 몸 전체가 한눈에 들어오지만, 뱀 시점에서는
+  <strong>내 몸이 어디에 깔려 있는지 머릿속으로 기억해야 합니다.</strong> 방금 지나온 길이 곧 장애물이 되는데 그게 화면 밖에 있는 셈이죠.
+  같은 규칙인데도 전혀 다른 긴장감이 생기는 이유입니다.</p>
+  <a class="play" href="player.html?game=snake3d">▶ 지금 플레이</a>
+</section>
+
+<section class="card">
+  <h2>조작법</h2>
+  <table>
+    <tr><th>← → 또는 A D</th><td>좌·우 90° 회전. 이 게임의 조작은 이 둘이 전부입니다</td></tr>
+    <tr><th>화면 왼쪽/오른쪽 탭</th><td>스마트폰 — 화면 절반을 기준으로 좌우 회전</td></tr>
+    <tr><th>⟲ ⟳ 버튼</th><td>화면 아래 회전 버튼으로도 조작 가능</td></tr>
+    <tr><th>P</th><td>일시정지</td></tr>
+  </table>
+  <h3>가장 먼저 익혀야 할 것: "내 기준" 좌우</h3>
+  <p>위에서 보는 스네이크의 방향키는 화면 기준이지만, 이 게임의 좌우는 <strong>뱀이 보는 방향 기준</strong>입니다.
+  카메라가 항상 뱀 뒤에 있으므로 "왼쪽 버튼 = 화면에서도 왼쪽으로 꺾임"이라 직관적이긴 한데,
+  연속으로 빠르게 꺾을 때 머리가 어디를 향하는지 놓치기 쉽습니다. 처음 몇 판은 <strong>한 번에 한 번만 꺾는</strong> 습관으로 감각을 잡으세요.</p>
+</section>
+
+<section class="card">
+  <h2>공략 팁</h2>
+  <h3>1. 먹이는 빛기둥으로 찾으세요</h3>
+  <p>추적 시점이라 먹이가 화면 밖에 있을 때가 많습니다. 그래서 먹이 위치에는 <strong>하늘로 뻗는 주황 빛기둥</strong>이 세워져 있어요.
+  머리를 돌리면서 빛기둥이 화면 어느 쪽에 있는지 먼저 확인하고 경로를 정하는 것이 기본기입니다.</p>
+  <h3>2. 넓게 도세요</h3>
+  <p>먹이를 향해 최단 경로로 달리면 몸이 안쪽으로 계속 감기면서 스스로 갇힙니다.
+  <strong>벽을 따라 크게 돌면서 먹이를 지나가는 길에 줍는</strong> 느낌으로 플레이하면 몸이 자연스럽게 펴져서 훨씬 오래 삽니다.</p>
+  <h3>3. 몸이 길어지면 "지그재그 접기"</h3>
+  <p>길이가 20을 넘으면 아무렇게나 돌다가는 반드시 자기 몸을 만납니다.
+  경작지를 갈듯 <strong>한 방향으로 길게 → 두 칸 옆으로 → 반대 방향으로 길게</strong> 접는 패턴을 쓰면
+  몸이 정리된 상태로 유지되어 막다른 길이 생기지 않습니다. 원조 스네이크의 고전 전략이 여기서도 그대로 통합니다.</p>
+  <h3>4. 회전 직후가 사각지대</h3>
+  <p>90°를 꺾는 순간 카메라도 따라 돌기 때문에 잠깐 시야가 휙 지나갑니다. 이때 바로 또 꺾는 것이 가장 흔한 사망 원인입니다.
+  <strong>꺾은 뒤 반 박자 쉬고 다음 판단</strong> — 이것만 지켜도 기록이 확 늘어요.</p>
+  <h3>5. 속도는 점점 빨라집니다</h3>
+  <p>점수가 오를수록 이동이 빨라져 30점 근처에서 최고 속도에 도달합니다. 초반의 여유로운 템포에 익숙해지지 말고,
+  중반부터는 먹이 하나를 먹기 전에 <strong>다음 먹이까지의 경로를 미리</strong> 그려두는 습관이 필요합니다.</p>
+</section>
+
+<section class="card">
+  <h2>자주 묻는 질문</h2>
+  <p><strong>Q. 위에서 보는 화면으로는 못 바꾸나요?</strong><br>
+  네, 이 게임의 정체성이라 바꿀 수 없습니다. 위에서 내려다보면 평범한 2D 스네이크와 같아지기 때문에,
+  일부러 뱀의 시점을 고정해 "내 몸을 기억하는 긴장감"을 만들었습니다.</p>
+  <p><strong>Q. 최고 기록은 저장되나요?</strong><br>
+  네. 브라우저에 저장되어 다음 방문에도 유지됩니다. 다만 브라우저 데이터를 지우면 초기화되고, 기기 간에는 공유되지 않습니다.</p>
+  <p><strong>Q. 멀미가 나요.</strong><br>
+  카메라 회전 때문에 민감한 분은 어지러울 수 있습니다. 화면에서 조금 떨어져서 하고, 회전을 연타하지 않는 것이 도움이 됩니다.</p>
+</section>
+
+<section class="card">
+  <h2>다른 게임 가이드</h2>
+  <div class="tocList">
+    <a class="tocItem" href="guide-wing-dodge-3d.html"><b>윙 닷지 3D 공략</b><span>새 5종 스킬 비교와 월드별 돌파법</span></a>
+    <a class="tocItem" href="guide-bounceball3d.html"><b>3D 바운스볼 공략</b><span>블록·아이템 전종류 해설과 스테이지 돌파법</span></a>
+    <a class="tocItem" href="guide-skybounce3d.html"><b>스카이 바운스 3D 공략</b><span>발판 종류와 고득점 요령</span></a>
+  </div>
+</section>
+
+</main>
+
+<footer>© 2026 Arcade3D · <a href="index.html">홈</a> · <a href="guides.html">게임 가이드</a> · <a href="privacy.html">개인정보처리방침</a></footer>
+
+</body>
+</html>
