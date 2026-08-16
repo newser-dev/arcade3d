@@ -482,6 +482,9 @@ function speedForScore(s) {
   return STEP_MAX + (STEP_MIN - STEP_MAX) * t;
 }
 
+// 회전이 대기 중이면 스텝을 앞당겨 입력이 밀리지 않게 한다
+const stepInterval = () => (turnQueue.length ? stepDur * 0.55 : stepDur);
+
 // ───────────────────────── 한 스텝 진행 ─────────────────────────
 function step() {
   // 큐에서 회전 하나 꺼내 적용 (스텝당 하나 — 나머지는 다음 스텝에)
@@ -545,7 +548,7 @@ function die(cause) {
 // ───────────────────────── 조작 ─────────────────────────
 function turn(dir) {
   if (!playing || paused || dead) return;
-  if (turnQueue.length < 3) { turnQueue.push(dir); SFX.turn(); }
+  if (turnQueue.length < 2) { turnQueue.push(dir); SFX.turn(); }
 }
 addEventListener('keydown', e => {
   if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') { e.preventDefault(); turn(-1); }
@@ -615,14 +618,16 @@ function draw(now) {
 
   if (playing && !paused && !dead) {
     stepT += dt;
-    while (stepT >= stepDur && playing) {
-      stepT -= stepDur;
+    let iv = stepInterval();
+    while (stepT >= iv && playing) {
+      stepT -= iv;
       step();
+      iv = stepInterval();
     }
   }
   if (dead) deathT += dt;
 
-  const t = playing && !paused ? Math.min(1, stepT / stepDur) : (dead ? 1 : 0);
+  const t = playing && !paused ? Math.min(1, stepT / stepInterval()) : (dead ? 1 : 0);
 
   // 뱀 몸 위치 (이전 칸 → 현재 칸 보간)
   const n = cells.length;
