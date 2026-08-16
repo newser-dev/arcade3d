@@ -279,23 +279,55 @@ const wallTop = new THREE.MeshStandardMaterial({ color: 0x7bd88f, emissive: 0x2f
 }
 
 // ───────────────────────── 뱀 ─────────────────────────
-const headMat = new THREE.MeshStandardMaterial({ color: 0x9cf0ab, roughness: .45 });
-const bodyMatA = new THREE.MeshStandardMaterial({ color: 0x5cc474, roughness: .55 });
-const bodyMatB = new THREE.MeshStandardMaterial({ color: 0x3f9e58, roughness: .55 });
-const bodyGeo = new THREE.SphereGeometry(0.42, 20, 14);
+const headMat = new THREE.MeshStandardMaterial({ color: 0x6fcf85, roughness: .5 });
+const bodyMatA = new THREE.MeshStandardMaterial({ color: 0x55b96c, roughness: .6 });
+const bodyMatB = new THREE.MeshStandardMaterial({ color: 0x3c9152, roughness: .6 });
+const bodyGeo = new THREE.SphereGeometry(0.47, 20, 14);
 const headGeo = new THREE.SphereGeometry(0.5, 24, 16);
-const eyeGeo = new THREE.SphereGeometry(0.12, 10, 8);
-const eyeMat = new THREE.MeshBasicMaterial({ color: 0x101820 });
+const eyeGeo = new THREE.SphereGeometry(0.11, 10, 8);
 
 const headGroup = new THREE.Group();
+let tongue;
 {
+  // 앞뒤로 길쭉한 뱀 머리
   const h = new THREE.Mesh(headGeo, headMat);
+  h.scale.set(1, 0.8, 1.32);
   headGroup.add(h);
+
+  // 노란 눈 + 세로 동공
   for (const sx of [-1, 1]) {
-    const e = new THREE.Mesh(eyeGeo, eyeMat);
-    e.position.set(0.2 * sx, 0.15, -0.4);   // 구 표면에 붙도록
+    const e = new THREE.Mesh(eyeGeo, new THREE.MeshStandardMaterial({ color: 0xffd54a, roughness: .35, emissive: 0x4a3a00 }));
+    e.position.set(0.24 * sx, 0.18, -0.38);
     headGroup.add(e);
+    const p = new THREE.Mesh(eyeGeo, new THREE.MeshBasicMaterial({ color: 0x0b0f14 }));
+    p.scale.set(0.32, 0.85, 0.5);
+    p.position.set(0.27 * sx, 0.19, -0.45);
+    headGroup.add(p);
   }
+
+  // 콧구멍
+  for (const sx of [-1, 1]) {
+    const n2 = new THREE.Mesh(new THREE.SphereGeometry(0.035, 8, 6), new THREE.MeshBasicMaterial({ color: 0x1a4028 }));
+    n2.position.set(0.11 * sx, 0.02, -0.63);
+    headGroup.add(n2);
+  }
+
+  // 날름거리는 갈라진 혀
+  tongue = new THREE.Group();
+  const tm = new THREE.MeshBasicMaterial({ color: 0xff4d5e });
+  const mid = new THREE.Mesh(new THREE.CylinderGeometry(0.028, 0.028, 0.3, 8), tm);
+  mid.rotation.x = Math.PI / 2;
+  mid.position.set(0, -0.08, -0.78);
+  tongue.add(mid);
+  for (const sx of [-1, 1]) {
+    const tip = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.008, 0.16, 8), tm);
+    tip.rotation.x = Math.PI / 2;
+    tip.rotation.y = sx * 0.45;
+    tip.position.set(0.045 * sx, -0.08, -0.97);
+    tongue.add(tip);
+  }
+  tongue.visible = false;
+  headGroup.add(tongue);
 }
 headGroup.position.y = 0.42;
 scene.add(headGroup);
@@ -644,7 +676,7 @@ function draw(now) {
       const m = bodyMesh(i - 1);
       m.visible = true;
       m.position.set(px, 0.42, pz);
-      const s = 1 - 0.16 * (i / n);
+      const s = 1 - 0.3 * (i / n);   // 꼬리로 갈수록 가늘게
       m.scale.setScalar(s);
     }
   }
@@ -658,6 +690,14 @@ function draw(now) {
   headGroup.rotation.y = yaw + diff * Math.min(1, dt * 14);
   // 죽으면 옆으로 툭 쓰러진다 (90°에서 멈춤 — 뱅글뱅글 돌지 않게)
   headGroup.rotation.z = dead ? Math.min(Math.PI / 2, deathT * 2.6) : 0;
+
+  // 혀 날름 — 2.4초마다 잠깐 내밀었다 넣는다
+  {
+    const cyc = now % 2400;
+    const out = !dead && playing && cyc < 300;
+    tongue.visible = out;
+    if (out) tongue.position.z = -Math.sin(cyc / 300 * Math.PI) * 0.16;
+  }
 
   // 먹이 연출
   for (const f of foods) {
