@@ -125,6 +125,12 @@
   #overCause { font-size: 13px; color: #ff7a6b; font-weight: 700; }
   .newRecord { color: #7bd88f; font-weight: 800; }
 
+  #radar {
+    position: absolute; top: 12px; left: 12px;
+    width: 96px; height: 96px; border-radius: 10px;
+    border: 1px solid rgba(255,255,255,.13); background: rgba(8,14,28,.5);
+  }
+
   #hint { position: fixed; bottom: 8px; left: 0; right: 0; text-align: center;
     z-index: 5; font-size: 11px; color: rgba(255,255,255,.45); pointer-events: none; }
 </style>
@@ -135,6 +141,7 @@
 <div id="hud" class="hidden">
   <div id="scoreNum">0</div>
   <div id="lenTag"></div>
+  <canvas id="radar" width="96" height="96"></canvas>
 </div>
 <button id="sndBtn" class="iconBtn"></button>
 <button id="pauseBtn" class="iconBtn hidden"><svg width="12" height="13" viewBox="0 0 12 13"><rect x="1" width="3.6" height="13" rx="1.1" fill="currentColor"/><rect x="7.4" width="3.6" height="13" rx="1.1" fill="currentColor"/></svg></button>
@@ -404,6 +411,36 @@ const camTarget = new THREE.Vector3();
 const el = id => document.getElementById(id);
 const hud = el('hud'), turnBar = el('turnBar'), hint = el('hint');
 
+// ── 레이더: 먹이와 내 위치·방향만 표시 (내 몸은 비밀 — 그게 이 게임의 긴장감) ──
+const radarEl = el('radar');
+const rctx = radarEl.getContext('2d');
+function drawRadar() {
+  const S = 96, k = S / N;
+  rctx.clearRect(0, 0, S, S);
+  rctx.strokeStyle = 'rgba(123,216,143,.35)';
+  rctx.lineWidth = 1.5;
+  rctx.strokeRect(1, 1, S - 2, S - 2);
+  rctx.fillStyle = '#ff7a5c';
+  for (const f of foods) {
+    rctx.beginPath();
+    rctx.arc((f.cell.x + 0.5) * k, (f.cell.z + 0.5) * k, 2.6, 0, Math.PI * 2);
+    rctx.fill();
+  }
+  const h = cells[0];
+  const hx = (h.x + 0.5) * k, hz = (h.z + 0.5) * k;
+  const d = DIRS[dirIndex];
+  rctx.strokeStyle = '#7bd88f';
+  rctx.lineWidth = 2;
+  rctx.beginPath();
+  rctx.moveTo(hx, hz);
+  rctx.lineTo(hx + d.x * 7, hz + d.z * 7);
+  rctx.stroke();
+  rctx.fillStyle = '#9cf0ab';
+  rctx.beginPath();
+  rctx.arc(hx, hz, 3.4, 0, Math.PI * 2);
+  rctx.fill();
+}
+
 function randEmptyCell() {
   const taken = new Set(cells.map(c => c.x + ',' + c.z));
   for (const f of foods) taken.add(f.cell.x + ',' + f.cell.z);
@@ -663,6 +700,8 @@ function draw(now) {
     s.mesh.rotation.x += dt * 7;
     s.mesh.rotation.y += dt * 9;
   }
+
+  if (!hud.classList.contains('hidden')) drawRadar();
 
   renderer.render(scene, camera);
 }
