@@ -136,12 +136,12 @@
   <div id="scoreNum">0</div>
   <div id="lenTag"></div>
 </div>
-<button id="sndBtn" class="iconBtn">🔊</button>
-<button id="pauseBtn" class="iconBtn hidden">⏸</button>
+<button id="sndBtn" class="iconBtn"></button>
+<button id="pauseBtn" class="iconBtn hidden"><svg width="12" height="13" viewBox="0 0 12 13"><rect x="1" width="3.6" height="13" rx="1.1" fill="currentColor"/><rect x="7.4" width="3.6" height="13" rx="1.1" fill="currentColor"/></svg></button>
 
 <div id="turnBar" class="hidden">
-  <button class="turnBtn" id="leftBtn">⟲</button>
-  <button class="turnBtn" id="rightBtn">⟳</button>
+  <button class="turnBtn" id="leftBtn" aria-label="왼쪽으로 회전"><svg width="30" height="30" viewBox="0 0 30 30" fill="none"><path d="M9 7a10 10 0 1 1-4 8" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M9 2v6h6" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+  <button class="turnBtn" id="rightBtn" aria-label="오른쪽으로 회전"><svg width="30" height="30" viewBox="0 0 30 30" fill="none"><path d="M21 7a10 10 0 1 0 4 8" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M21 2v6h-6" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
 </div>
 
 <!-- 시작 화면 -->
@@ -151,8 +151,8 @@
   <div id="menuBest"></div>
   <button class="btn" id="startBtn">게임 시작</button>
   <div class="controls">
-    🖥️ <b>← →</b> 또는 <b>A D</b> — 좌·우 회전 &nbsp;·&nbsp; <b>P</b> 일시정지<br>
-    📱 화면 <b>왼쪽/오른쪽 탭</b> 또는 아래 <b>⟲ ⟳</b> 버튼
+    <b>← →</b> 또는 <b>A D</b> — 좌·우 회전 &nbsp;·&nbsp; <b>P</b> 일시정지<br>
+    터치는 화면 <b>왼쪽·오른쪽 탭</b> 또는 아래 회전 버튼
   </div>
 </div>
 
@@ -305,32 +305,64 @@ function bodyMesh(i) {
   return bodyPool[i];
 }
 
-// ───────────────────────── 먹이 ─────────────────────────
-const food = new THREE.Mesh(
-  new THREE.IcosahedronGeometry(0.34, 0),
-  new THREE.MeshStandardMaterial({ color: 0xff7a5c, emissive: 0x8c2c15, roughness: .3 })
-);
-food.position.y = 0.5;
-scene.add(food);
-const foodGlow = new THREE.PointLight(0xff8a66, 1.4, 5);
-scene.add(foodGlow);
-
-// 추적 시점이라 먹이가 화면 밖에 있을 수 있어, 위치를 알려주는 빛기둥을 세운다
-const beam = new THREE.Mesh(
-  new THREE.CylinderGeometry(0.16, 0.3, 14, 12, 1, true),
-  new THREE.MeshBasicMaterial({
-    color: 0xff9a78, transparent: true, opacity: 0.22,
+// ───────────────────────── 먹이 (동시에 5개) ─────────────────────────
+// 추적 시점이라 먹이가 화면 밖에 있을 수 있어, 각 먹이 위치에 빛기둥을 세운다
+const FOOD_COUNT = 5;
+const foodGeo = new THREE.IcosahedronGeometry(0.34, 0);
+const foodMat = new THREE.MeshStandardMaterial({ color: 0xff7a5c, emissive: 0x8c2c15, roughness: .3 });
+const beamGeo = new THREE.CylinderGeometry(0.16, 0.3, 14, 12, 1, true);
+const foods = [];
+for (let i = 0; i < FOOD_COUNT; i++) {
+  const mesh = new THREE.Mesh(foodGeo, foodMat);
+  mesh.position.y = 0.5;
+  scene.add(mesh);
+  const glow = new THREE.PointLight(0xff8a66, 1.1, 4.5);
+  scene.add(glow);
+  const beam = new THREE.Mesh(beamGeo, new THREE.MeshBasicMaterial({
+    color: 0xff9a78, transparent: true, opacity: 0.18,
     depthWrite: false, side: THREE.DoubleSide,
-  })
-);
-beam.position.y = 7;
-scene.add(beam);
+  }));
+  beam.position.y = 7;
+  scene.add(beam);
+  foods.push({ cell: { x: 0, z: 0 }, mesh, glow, beam, phase: Math.random() * Math.PI * 2 });
+}
+
+// ───────────────────────── 타격감: 스파크 & 카메라 흔들림 ─────────────────────────
+const sparkGeo = new THREE.TetrahedronGeometry(0.09);
+const sparks = [];
+for (let i = 0; i < 48; i++) {
+  const m = new THREE.Mesh(sparkGeo, new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true }));
+  m.visible = false;
+  scene.add(m);
+  sparks.push({ mesh: m, vel: new THREE.Vector3(), life: 0 });
+}
+function burstAt(x, z, colorHex, n = 12, power = 1) {
+  let used = 0;
+  for (const s of sparks) {
+    if (used >= n) break;
+    if (s.life > 0) continue;
+    used++;
+    s.life = 1;
+    s.mesh.visible = true;
+    s.mesh.material.color.setHex(colorHex);
+    s.mesh.position.set(x, 0.5, z);
+    const a = Math.random() * Math.PI * 2;
+    s.vel.set(
+      Math.cos(a) * (1 + Math.random() * 2) * power,
+      (2 + Math.random() * 3) * power,
+      Math.sin(a) * (1 + Math.random() * 2) * power
+    );
+  }
+}
+let shake = 0;
 
 // ───────────────────────── 사운드 ─────────────────────────
 let sndOn = localStorage.getItem(LS_SND) !== '0';
 let actx = null;
 const sndBtn = document.getElementById('sndBtn');
-function renderSnd() { sndBtn.textContent = sndOn ? '🔊' : '🔇'; }
+const SND_ON_SVG = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 6v4h3l4 3V3L5 6H2z" fill="currentColor"/><path d="M11.5 5.5a3.5 3.5 0 0 1 0 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>';
+const SND_OFF_SVG = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 6v4h3l4 3V3L5 6H2z" fill="currentColor"/><path d="M11 6l4 4M15 6l-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>';
+function renderSnd() { sndBtn.innerHTML = sndOn ? SND_ON_SVG : SND_OFF_SVG; }
 renderSnd();
 sndBtn.addEventListener('click', () => {
   sndOn = !sndOn;
@@ -362,7 +394,6 @@ let cells = [];        // [{x,z}] 0=머리
 let prevCells = [];
 let dirIndex = 0;
 let queuedTurn = 0;    // -1 좌, +1 우 (한 스텝에 하나만)
-let foodCell = { x: 0, z: 0 };
 let score = 0, best = +(localStorage.getItem(LS_BEST) || 0);
 let stepT = 0, stepDur = STEP_MAX;
 let playing = false, paused = false, dead = false;
@@ -375,6 +406,7 @@ const hud = el('hud'), turnBar = el('turnBar'), hint = el('hint');
 
 function randEmptyCell() {
   const taken = new Set(cells.map(c => c.x + ',' + c.z));
+  for (const f of foods) taken.add(f.cell.x + ',' + f.cell.z);
   let tries = 0, c;
   do {
     c = { x: (Math.random() * N) | 0, z: (Math.random() * N) | 0 };
@@ -394,7 +426,8 @@ function reset() {
   stepT = 0;
   stepDur = STEP_MAX;
   dead = false; deathT = 0;
-  foodCell = randEmptyCell();
+  for (const f of foods) f.cell = { x: -1, z: -1 };
+  for (const f of foods) f.cell = randEmptyCell();
   camForward.set(DIRS[dirIndex].x, 0, DIRS[dirIndex].z);
   const hp = new THREE.Vector3(wx(cells[0].x), 0.42, wx(cells[0].z));
   camera.position.set(hp.x - camForward.x * CAM_DIST, CAM_H, hp.z - camForward.z * CAM_DIST);
@@ -436,13 +469,17 @@ function step() {
   }
 
   prevCells = cells.map(c => ({ ...c }));
-  const ate = (nx === foodCell.x && nz === foodCell.z);
+  const eatenFood = foods.find(f => f.cell.x === nx && f.cell.z === nz);
+  const ate = !!eatenFood;
   cells.unshift({ x: nx, z: nz });
   if (!ate) cells.pop();
   else {
     score++;
     stepDur = speedForScore(score);
-    foodCell = randEmptyCell();
+    burstAt(wx(nx), wx(nz), 0xff7a5c, 10);
+    shake = Math.max(shake, 0.22);
+    for (const f of foods) f.cell = { x: -1, z: -1 };
+  for (const f of foods) f.cell = randEmptyCell();
     SFX.eat();
     el('scoreNum').classList.remove('pop');
     void el('scoreNum').offsetWidth;
@@ -454,12 +491,14 @@ function step() {
 function die(cause) {
   dead = true; playing = false; deathT = 0;
   SFX.die();
+  burstAt(wx(cells[0].x), wx(cells[0].z), 0x7bd88f, 24, 1.5);
+  shake = 1;
   const isNew = score > best;
   if (isNew) { best = score; localStorage.setItem(LS_BEST, String(best)); }
   el('overCause').textContent = cause;
   el('overScore').innerHTML = `${score}<small> 점</small>`;
   el('overBest').innerHTML = isNew
-    ? `<span class="newRecord">🎉 신기록!</span>`
+    ? `<span class="newRecord">신기록</span>`
     : `최고 기록 <b>${best}</b>점`;
   hud.classList.add('hidden');
   turnBar.classList.add('hidden');
@@ -577,15 +616,18 @@ function draw(now) {
   let yaw = headGroup.rotation.y;
   let diff = ((targetYaw - yaw + Math.PI * 3) % (Math.PI * 2)) - Math.PI;
   headGroup.rotation.y = yaw + diff * Math.min(1, dt * 14);
-  if (dead) headGroup.rotation.z += dt * 3;
+  // 죽으면 옆으로 툭 쓰러진다 (90°에서 멈춤 — 뱅글뱅글 돌지 않게)
+  headGroup.rotation.z = dead ? Math.min(Math.PI / 2, deathT * 2.6) : 0;
 
   // 먹이 연출
-  food.position.set(wx(foodCell.x), 0.5 + Math.sin(now / 320) * 0.1, wx(foodCell.z));
-  food.rotation.y += dt * 1.6;
-  food.rotation.x += dt * 0.9;
-  foodGlow.position.copy(food.position);
-  beam.position.set(wx(foodCell.x), 7, wx(foodCell.z));
-  beam.material.opacity = 0.16 + Math.sin(now / 260) * 0.06;
+  for (const f of foods) {
+    f.mesh.position.set(wx(f.cell.x), 0.5 + Math.sin(now / 320 + f.phase) * 0.1, wx(f.cell.z));
+    f.mesh.rotation.y += dt * 1.6;
+    f.mesh.rotation.x += dt * 0.9;
+    f.glow.position.copy(f.mesh.position);
+    f.beam.position.set(wx(f.cell.x), 7, wx(f.cell.z));
+    f.beam.material.opacity = 0.13 + Math.sin(now / 260 + f.phase) * 0.05;
+  }
 
   // 카메라: 뱀 뒤를 부드럽게 추적
   tmpA.set(d.x, 0, d.z);
@@ -598,6 +640,31 @@ function draw(now) {
   camTarget.lerp(tmpB, 1 - Math.pow(0.0015, dt));
   camera.lookAt(camTarget);
 
+  // 카메라 흔들림 (먹으면 살짝, 죽으면 크게)
+  if (shake > 0) {
+    shake = Math.max(0, shake - dt * 2.4);
+    camera.position.x += (Math.random() - 0.5) * shake * 0.9;
+    camera.position.y += (Math.random() - 0.5) * shake * 0.55;
+    camera.position.z += (Math.random() - 0.5) * shake * 0.9;
+  }
+
+  // 스파크 파티클
+  for (const s of sparks) {
+    if (s.life <= 0) continue;
+    s.life -= dt * 1.8;
+    if (s.life <= 0) { s.mesh.visible = false; continue; }
+    s.vel.y -= 12 * dt;
+    s.mesh.position.addScaledVector(s.vel, dt);
+    if (s.mesh.position.y < 0.06) {
+      s.mesh.position.y = 0.06;
+      s.vel.y *= -0.4; s.vel.x *= 0.8; s.vel.z *= 0.8;
+    }
+    s.mesh.scale.setScalar(Math.max(0.05, s.life) * 1.4);
+    s.mesh.material.opacity = s.life;
+    s.mesh.rotation.x += dt * 7;
+    s.mesh.rotation.y += dt * 9;
+  }
+
   renderer.render(scene, camera);
 }
 
@@ -609,7 +676,7 @@ schedule(draw);
 window.__snake = {
   start: startGame,
   turn,
-  state: () => ({ score, len: cells.length, dead, playing, head: cells[0], dir: dirIndex }),
+  state: () => ({ score, len: cells.length, dead, playing, head: cells[0], dir: dirIndex, foods: foods.map(f => ({ ...f.cell })) }),
 };
 </script>
 </body>
