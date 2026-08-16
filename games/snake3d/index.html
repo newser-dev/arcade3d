@@ -478,8 +478,7 @@ function step() {
     stepDur = speedForScore(score);
     burstAt(wx(nx), wx(nz), 0xff7a5c, 10);
     shake = Math.max(shake, 0.22);
-    for (const f of foods) f.cell = { x: -1, z: -1 };
-  for (const f of foods) f.cell = randEmptyCell();
+    eatenFood.cell = randEmptyCell();   // 먹은 것만 새 자리에
     SFX.eat();
     el('scoreNum').classList.remove('pop');
     void el('scoreNum').offsetWidth;
