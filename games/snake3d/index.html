@@ -22,7 +22,7 @@
 </script>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  html, body { width: 100%; height: 100%; overflow: hidden; background: #0a1020; touch-action: none; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #9ad2ef; touch-action: none; }
   body { font-family: 'Segoe UI', 'Malgun Gothic', sans-serif; user-select: none; -webkit-user-select: none; }
   #c { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
 
@@ -213,13 +213,13 @@ const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x0a1020);
-scene.fog = new THREE.Fog(0x0a1020, 18, 40);
+scene.background = new THREE.Color(0x9ad2ef);
+scene.fog = new THREE.Fog(0x9ad2ef, 22, 46);
 
 const camera = new THREE.PerspectiveCamera(62, 1, 0.1, 200);
 
-scene.add(new THREE.HemisphereLight(0xcfe6ff, 0x16233c, 1.05));
-const sun = new THREE.DirectionalLight(0xffffff, 0.85);
+scene.add(new THREE.HemisphereLight(0xffffff, 0x8fca6a, 1.15));
+const sun = new THREE.DirectionalLight(0xfff3da, 0.95);
 sun.position.set(6, 14, 8);
 scene.add(sun);
 
@@ -237,12 +237,12 @@ function makeFloorTexture() {
   const S = 64, cv = document.createElement('canvas');
   cv.width = cv.height = S * 2;
   const g = cv.getContext('2d');
-  const colors = ['#132038', '#0f1a2e'];
+  const colors = ['#8fd05e', '#7bbf4d'];
   for (let i = 0; i < 2; i++) for (let j = 0; j < 2; j++) {
     g.fillStyle = colors[(i + j) % 2];
     g.fillRect(i * S, j * S, S, S);
   }
-  g.strokeStyle = 'rgba(123,216,143,.10)';
+  g.strokeStyle = 'rgba(255,255,255,.14)';
   g.lineWidth = 2;
   g.strokeRect(0, 0, S, S); g.strokeRect(S, S, S, S);
   const tex = new THREE.CanvasTexture(cv);
@@ -257,25 +257,74 @@ const floor = new THREE.Mesh(
 floor.rotation.x = -Math.PI / 2;
 scene.add(floor);
 
-// ───────────────────────── 벽 ─────────────────────────
-const wallMat = new THREE.MeshStandardMaterial({ color: 0x2b3f63, roughness: .7, metalness: .1 });
-const wallTop = new THREE.MeshStandardMaterial({ color: 0x7bd88f, emissive: 0x2f6b3d, roughness: .5 });
+// ───────────────────────── 나무 울타리 ─────────────────────────
 {
-  const half = (N * CELL) / 2, t = 0.5;
-  const mk = (w, d, x, z) => {
-    const m = new THREE.Mesh(new THREE.BoxGeometry(w, WALL_H, d), wallMat);
-    m.position.set(x, WALL_H / 2, z);
-    scene.add(m);
-    const cap = new THREE.Mesh(new THREE.BoxGeometry(w, 0.1, d), wallTop);
-    cap.position.set(x, WALL_H + 0.05, z);
-    scene.add(cap);
-  };
-  mk(N * CELL + t * 2, t, 0, -half - t / 2);
-  mk(N * CELL + t * 2, t, 0, half + t / 2);
-  mk(t, N * CELL, -half - t / 2, 0);
-  mk(t, N * CELL, half + t / 2, 0);
-}
+  const half = (N * CELL) / 2;
+  const plankMat = new THREE.MeshStandardMaterial({ color: 0xb5854e, roughness: .85 });
+  const railMat = new THREE.MeshStandardMaterial({ color: 0x96683a, roughness: .85 });
+  const plankGeo = new THREE.BoxGeometry(0.6, 1.6, 0.12);
+  const tipGeo = new THREE.ConeGeometry(0.34, 0.35, 4);
 
+  // 네 변에 세로 판자 (끝은 뾰족하게)
+  for (let i = -half + 0.55; i <= half - 0.55; i += 1.05) {
+    const spots = [
+      [i, -half - 0.2, 0], [i, half + 0.2, 0],
+      [-half - 0.2, i, Math.PI / 2], [half + 0.2, i, Math.PI / 2],
+    ];
+    for (const [px, pz, rot] of spots) {
+      const h = 1.5 + Math.random() * 0.18;
+      const p = new THREE.Mesh(plankGeo, plankMat);
+      p.scale.y = h / 1.6;
+      p.position.set(px, h / 2, pz);
+      p.rotation.y = rot;
+      scene.add(p);
+      const tip = new THREE.Mesh(tipGeo, plankMat);
+      tip.position.set(px, h + 0.16, pz);
+      tip.rotation.y = rot + Math.PI / 4;
+      scene.add(tip);
+    }
+  }
+  // 가로 레일 두 줄
+  const railH = new THREE.BoxGeometry(N * CELL + 1.2, 0.15, 0.09);
+  const railV = new THREE.BoxGeometry(0.09, 0.15, N * CELL + 1.2);
+  for (const y of [0.55, 1.1]) {
+    for (const z of [-half - 0.3, half + 0.3]) {
+      const r = new THREE.Mesh(railH, railMat);
+      r.position.set(0, y, z);
+      scene.add(r);
+    }
+    for (const x of [-half - 0.3, half + 0.3]) {
+      const r = new THREE.Mesh(railV, railMat);
+      r.position.set(x, y, 0);
+      scene.add(r);
+    }
+  }
+  // 울타리 밖 잔디 마당
+  const lawn = new THREE.Mesh(
+    new THREE.PlaneGeometry(N * CELL * 3, N * CELL * 3),
+    new THREE.MeshStandardMaterial({ color: 0x7fc251, roughness: .95 })
+  );
+  lawn.rotation.x = -Math.PI / 2;
+  lawn.position.y = -0.02;
+  scene.add(lawn);
+  // 마당의 꽃 (흰 꽃잎 + 노란 중심)
+  const petalMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: .6 });
+  const centerMat = new THREE.MeshStandardMaterial({ color: 0xffd54a, roughness: .5 });
+  for (let i = 0; i < 26; i++) {
+    const a = Math.random() * Math.PI * 2;
+    const r = half + 1.5 + Math.random() * 6;
+    const fx = Math.cos(a) * r, fz = Math.sin(a) * r;
+    const fl = new THREE.Group();
+    const petal = new THREE.Mesh(new THREE.SphereGeometry(0.16, 8, 6), petalMat);
+    petal.scale.y = 0.35;
+    fl.add(petal);
+    const ce = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 6), centerMat);
+    ce.position.y = 0.05;
+    fl.add(ce);
+    fl.position.set(fx, 0.05, fz);
+    scene.add(fl);
+  }
+}
 // ───────────────────────── 뱀 (카툰 스타일) ─────────────────────────
 // 등은 초록, 배는 주황 — 세로 그라데이션 텍스처로 투톤을 만든다
 function twoToneTex(top, belly) {
