@@ -400,7 +400,7 @@ const SFX = {
 let cells = [];        // [{x,z}] 0=머리
 let prevCells = [];
 let dirIndex = 0;
-let queuedTurn = 0;    // -1 좌, +1 우 (한 스텝에 하나만)
+let turnQueue = [];    // 회전 입력 큐 — 연타해도 순서대로 다 먹힌다 (최대 3개)
 let score = 0, best = +(localStorage.getItem(LS_BEST) || 0);
 let stepT = 0, stepDur = STEP_MAX;
 let playing = false, paused = false, dead = false;
@@ -458,7 +458,7 @@ function reset() {
   for (let i = 0; i < START_LEN; i++) cells.push({ x: mid, z: mid + i });
   prevCells = cells.map(c => ({ ...c }));
   dirIndex = 0;
-  queuedTurn = 0;
+  turnQueue = [];
   score = 0;
   stepT = 0;
   stepDur = STEP_MAX;
@@ -484,10 +484,9 @@ function speedForScore(s) {
 
 // ───────────────────────── 한 스텝 진행 ─────────────────────────
 function step() {
-  // 예약된 회전 적용
-  if (queuedTurn) {
-    dirIndex = (dirIndex + queuedTurn + 4) % 4;
-    queuedTurn = 0;
+  // 큐에서 회전 하나 꺼내 적용 (스텝당 하나 — 나머지는 다음 스텝에)
+  if (turnQueue.length) {
+    dirIndex = (dirIndex + turnQueue.shift() + 4) % 4;
   }
   const d = DIRS[dirIndex];
   const head = cells[0];
@@ -546,15 +545,15 @@ function die(cause) {
 // ───────────────────────── 조작 ─────────────────────────
 function turn(dir) {
   if (!playing || paused || dead) return;
-  if (queuedTurn === 0) { queuedTurn = dir; SFX.turn(); }
+  if (turnQueue.length < 3) { turnQueue.push(dir); SFX.turn(); }
 }
 addEventListener('keydown', e => {
   if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') { e.preventDefault(); turn(-1); }
   else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') { e.preventDefault(); turn(1); }
   else if (e.key === 'p' || e.key === 'P') togglePause();
 });
-el('leftBtn').addEventListener('click', () => turn(-1));
-el('rightBtn').addEventListener('click', () => turn(1));
+el('leftBtn').addEventListener('pointerdown', e => { e.preventDefault(); turn(-1); });
+el('rightBtn').addEventListener('pointerdown', e => { e.preventDefault(); turn(1); });
 // 화면 좌우 절반 탭
 canvas.addEventListener('pointerdown', e => {
   if (!playing || paused) return;
