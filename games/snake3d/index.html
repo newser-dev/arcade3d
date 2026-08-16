@@ -195,9 +195,7 @@ import * as THREE from './three.module.js';
 const N = 21;                 // 격자 한 변 (홀수여야 중앙 시작이 깔끔함)
 const CELL = 1;               // 격자 한 칸 크기
 const WALL_H = 1.2;           // 벽 높이
-const STEP_MAX = 0.20;        // 시작 이동 간격(초)
-const STEP_MIN = 0.085;       // 최고 속도일 때 간격
-const SPEED_UP_AT = 30;       // 이 점수에서 최고 속도 도달
+const STEP_MAX = 0.20;        // 이동 간격(초) — 속도는 끝까지 일정
 const START_LEN = 4;
 const CAM_DIST = 5.0, CAM_H = 8.2, CAM_LOOK = 4.5;   // 몸에 시야가 가리지 않도록 위에서 내려다보는 추적 시점
 const LS_BEST = 'snake3d-best';
@@ -509,11 +507,6 @@ function updateHUD() {
   el('lenTag').textContent = `길이 ${cells.length}` + (best ? ` · 최고 ${best}` : '');
 }
 
-function speedForScore(s) {
-  const t = Math.min(1, s / SPEED_UP_AT);
-  return STEP_MAX + (STEP_MIN - STEP_MAX) * t;
-}
-
 // 회전이 대기 중이면 스텝을 앞당겨 입력이 밀리지 않게 한다
 const stepInterval = () => (turnQueue.length ? stepDur * 0.55 : stepDur);
 
@@ -546,7 +539,6 @@ function step() {
   if (!ate) cells.pop();
   else {
     score++;
-    stepDur = speedForScore(score);
     burstAt(wx(nx), wx(nz), 0xff7a5c, 10);
     shake = Math.max(shake, 0.22);
     eatenFood.cell = randEmptyCell();   // 먹은 것만 새 자리에
