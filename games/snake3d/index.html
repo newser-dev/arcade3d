@@ -275,9 +275,9 @@ const wallTop = new THREE.MeshStandardMaterial({ color: 0x7bd88f, emissive: 0x2f
 const headMat = new THREE.MeshStandardMaterial({ color: 0x9cf0ab, roughness: .45 });
 const bodyMatA = new THREE.MeshStandardMaterial({ color: 0x5cc474, roughness: .55 });
 const bodyMatB = new THREE.MeshStandardMaterial({ color: 0x3f9e58, roughness: .55 });
-const bodyGeo = new THREE.BoxGeometry(0.82, 0.7, 0.82);
-const headGeo = new THREE.BoxGeometry(0.92, 0.84, 0.92);
-const eyeGeo = new THREE.SphereGeometry(0.1, 10, 8);
+const bodyGeo = new THREE.SphereGeometry(0.42, 20, 14);
+const headGeo = new THREE.SphereGeometry(0.5, 24, 16);
+const eyeGeo = new THREE.SphereGeometry(0.12, 10, 8);
 const eyeMat = new THREE.MeshBasicMaterial({ color: 0x101820 });
 
 const headGroup = new THREE.Group();
@@ -286,7 +286,7 @@ const headGroup = new THREE.Group();
   headGroup.add(h);
   for (const sx of [-1, 1]) {
     const e = new THREE.Mesh(eyeGeo, eyeMat);
-    e.position.set(0.22 * sx, 0.16, -0.44);
+    e.position.set(0.2 * sx, 0.15, -0.4);   // 구 표면에 붙도록
     headGroup.add(e);
   }
 }
@@ -297,7 +297,7 @@ const bodyPool = [];
 function bodyMesh(i) {
   while (bodyPool.length <= i) {
     const m = new THREE.Mesh(bodyGeo, bodyPool.length % 2 ? bodyMatB : bodyMatA);
-    m.position.y = 0.35;
+    m.position.y = 0.42;
     m.visible = false;
     scene.add(m);
     bodyPool.push(m);
@@ -603,7 +603,7 @@ function draw(now) {
     } else {
       const m = bodyMesh(i - 1);
       m.visible = true;
-      m.position.set(px, 0.35, pz);
+      m.position.set(px, 0.42, pz);
       const s = 1 - 0.16 * (i / n);
       m.scale.setScalar(s);
     }
@@ -611,7 +611,7 @@ function draw(now) {
 
   // 머리
   const d = DIRS[dirIndex];
-  headGroup.position.set(headX, dead ? 0.42 - Math.min(0.3, deathT * 0.7) : 0.42, headZ);
+  headGroup.position.set(headX, dead ? 0.5 - Math.min(0.3, deathT * 0.7) : 0.5, headZ);
   const targetYaw = Math.atan2(d.x, d.z) + Math.PI;
   let yaw = headGroup.rotation.y;
   let diff = ((targetYaw - yaw + Math.PI * 3) % (Math.PI * 2)) - Math.PI;
