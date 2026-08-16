@@ -276,52 +276,86 @@ const wallTop = new THREE.MeshStandardMaterial({ color: 0x7bd88f, emissive: 0x2f
   mk(t, N * CELL, half + t / 2, 0);
 }
 
-// ───────────────────────── 뱀 ─────────────────────────
-const headMat = new THREE.MeshStandardMaterial({ color: 0x6fcf85, roughness: .5 });
-const bodyMatA = new THREE.MeshStandardMaterial({ color: 0x55b96c, roughness: .6 });
-const bodyMatB = new THREE.MeshStandardMaterial({ color: 0x3c9152, roughness: .6 });
+// ───────────────────────── 뱀 (카툰 스타일) ─────────────────────────
+// 등은 초록, 배는 주황 — 세로 그라데이션 텍스처로 투톤을 만든다
+function twoToneTex(top, belly) {
+  const cv = document.createElement('canvas');
+  cv.width = 4; cv.height = 64;
+  const g = cv.getContext('2d');
+  const gr = g.createLinearGradient(0, 0, 0, 64);
+  gr.addColorStop(0, top);
+  gr.addColorStop(0.52, top);
+  gr.addColorStop(0.72, belly);
+  gr.addColorStop(1, belly);
+  g.fillStyle = gr;
+  g.fillRect(0, 0, 4, 64);
+  return new THREE.CanvasTexture(cv);
+}
+const headMat  = new THREE.MeshStandardMaterial({ map: twoToneTex('#6ed584', '#f7b45c'), roughness: .55 });
+const bodyMatA = new THREE.MeshStandardMaterial({ map: twoToneTex('#57c26f', '#f2a44a'), roughness: .6 });
+const bodyMatB = new THREE.MeshStandardMaterial({ map: twoToneTex('#49ad60', '#e8983f'), roughness: .6 });
 const bodyGeo = new THREE.SphereGeometry(0.47, 20, 14);
 const headGeo = new THREE.SphereGeometry(0.5, 24, 16);
-const eyeGeo = new THREE.SphereGeometry(0.11, 10, 8);
 
 const headGroup = new THREE.Group();
 let tongue;
 {
-  // 앞뒤로 길쭉한 뱀 머리
+  // 앞뒤로 길쭉한 머리
   const h = new THREE.Mesh(headGeo, headMat);
-  h.scale.set(1, 0.8, 1.32);
+  h.scale.set(1, 0.85, 1.28);
   headGroup.add(h);
 
-  // 노란 눈 + 세로 동공
+  // 왕눈이 — 흰자 크게 + 까만 동공
   for (const sx of [-1, 1]) {
-    const e = new THREE.Mesh(eyeGeo, new THREE.MeshStandardMaterial({ color: 0xffd54a, roughness: .35, emissive: 0x4a3a00 }));
-    e.position.set(0.24 * sx, 0.18, -0.38);
-    headGroup.add(e);
-    const p = new THREE.Mesh(eyeGeo, new THREE.MeshBasicMaterial({ color: 0x0b0f14 }));
-    p.scale.set(0.32, 0.85, 0.5);
-    p.position.set(0.27 * sx, 0.19, -0.45);
-    headGroup.add(p);
+    const white = new THREE.Mesh(new THREE.SphereGeometry(0.17, 14, 12),
+      new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: .3 }));
+    white.position.set(0.2 * sx, 0.3, -0.26);
+    headGroup.add(white);
+    const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.085, 10, 8),
+      new THREE.MeshBasicMaterial({ color: 0x1a1a1a }));
+    pupil.position.set(0.21 * sx, 0.31, -0.4);
+    headGroup.add(pupil);
   }
 
   // 콧구멍
   for (const sx of [-1, 1]) {
-    const n2 = new THREE.Mesh(new THREE.SphereGeometry(0.035, 8, 6), new THREE.MeshBasicMaterial({ color: 0x1a4028 }));
-    n2.position.set(0.11 * sx, 0.02, -0.63);
+    const n2 = new THREE.Mesh(new THREE.SphereGeometry(0.03, 8, 6), new THREE.MeshBasicMaterial({ color: 0x2a6b3c }));
+    n2.position.set(0.1 * sx, 0.05, -0.62);
     headGroup.add(n2);
   }
+
+  // 귀여운 송곳니 2개
+  for (const sx of [-1, 1]) {
+    const fang = new THREE.Mesh(new THREE.ConeGeometry(0.045, 0.13, 8),
+      new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: .3 }));
+    fang.rotation.x = Math.PI;
+    fang.position.set(0.13 * sx, -0.2, -0.5);
+    headGroup.add(fang);
+  }
+
+  // 빨간 스카프 (목도리 + 흘러내린 자락)
+  const scarfMat = new THREE.MeshStandardMaterial({ color: 0xd94848, roughness: .7 });
+  const scarf = new THREE.Mesh(new THREE.TorusGeometry(0.4, 0.14, 10, 22), scarfMat);
+  scarf.rotation.x = Math.PI / 2;
+  scarf.position.set(0, -0.12, 0.3);
+  headGroup.add(scarf);
+  const tail1 = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.3, 0.07), scarfMat);
+  tail1.position.set(0.3, -0.32, 0.42);
+  tail1.rotation.z = 0.25;
+  headGroup.add(tail1);
 
   // 날름거리는 갈라진 혀
   tongue = new THREE.Group();
   const tm = new THREE.MeshBasicMaterial({ color: 0xff4d5e });
   const mid = new THREE.Mesh(new THREE.CylinderGeometry(0.028, 0.028, 0.3, 8), tm);
   mid.rotation.x = Math.PI / 2;
-  mid.position.set(0, -0.08, -0.78);
+  mid.position.set(0, -0.1, -0.78);
   tongue.add(mid);
   for (const sx of [-1, 1]) {
     const tip = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.008, 0.16, 8), tm);
     tip.rotation.x = Math.PI / 2;
     tip.rotation.y = sx * 0.45;
-    tip.position.set(0.045 * sx, -0.08, -0.97);
+    tip.position.set(0.045 * sx, -0.1, -0.97);
     tongue.add(tip);
   }
   tongue.visible = false;
@@ -345,12 +379,29 @@ function bodyMesh(i) {
 // ───────────────────────── 먹이 (동시에 5개) ─────────────────────────
 // 추적 시점이라 먹이가 화면 밖에 있을 수 있어, 각 먹이 위치에 빛기둥을 세운다
 const FOOD_COUNT = 5;
-const foodGeo = new THREE.IcosahedronGeometry(0.34, 0);
-const foodMat = new THREE.MeshStandardMaterial({ color: 0xff7a5c, emissive: 0x8c2c15, roughness: .3 });
+const appleMat = new THREE.MeshStandardMaterial({ color: 0xe5484d, roughness: .35, emissive: 0x5c0f12 });
+const stemMat = new THREE.MeshStandardMaterial({ color: 0x8a5a2b, roughness: .8 });
+const leafMat = new THREE.MeshStandardMaterial({ color: 0x5cc46e, roughness: .6 });
 const beamGeo = new THREE.CylinderGeometry(0.16, 0.3, 14, 12, 1, true);
+function makeApple() {
+  const g = new THREE.Group();
+  const body = new THREE.Mesh(new THREE.SphereGeometry(0.32, 16, 12), appleMat);
+  body.scale.y = 0.92;
+  g.add(body);
+  const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.035, 0.16, 6), stemMat);
+  stem.position.y = 0.35;
+  stem.rotation.z = 0.2;
+  g.add(stem);
+  const leaf = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 6), leafMat);
+  leaf.scale.set(1.6, 0.45, 0.9);
+  leaf.position.set(0.13, 0.38, 0);
+  leaf.rotation.z = 0.5;
+  g.add(leaf);
+  return g;
+}
 const foods = [];
 for (let i = 0; i < FOOD_COUNT; i++) {
-  const mesh = new THREE.Mesh(foodGeo, foodMat);
+  const mesh = makeApple();
   mesh.position.y = 0.5;
   scene.add(mesh);
   const glow = new THREE.PointLight(0xff8a66, 1.1, 4.5);
@@ -539,7 +590,7 @@ function step() {
   if (!ate) cells.pop();
   else {
     score++;
-    burstAt(wx(nx), wx(nz), 0xff7a5c, 10);
+    burstAt(wx(nx), wx(nz), 0xe5484d, 10);
     shake = Math.max(shake, 0.22);
     eatenFood.cell = randEmptyCell();   // 먹은 것만 새 자리에
     SFX.eat();
@@ -694,8 +745,7 @@ function draw(now) {
   // 먹이 연출
   for (const f of foods) {
     f.mesh.position.set(wx(f.cell.x), 0.5 + Math.sin(now / 320 + f.phase) * 0.1, wx(f.cell.z));
-    f.mesh.rotation.y += dt * 1.6;
-    f.mesh.rotation.x += dt * 0.9;
+    f.mesh.rotation.y += dt * 1.4;
     f.glow.position.copy(f.mesh.position);
     f.beam.position.set(wx(f.cell.x), 7, wx(f.cell.z));
     f.beam.material.opacity = 0.13 + Math.sin(now / 260 + f.phase) * 0.05;
