@@ -37,9 +37,7 @@
   html, body { margin: 0; min-height: 100%; }
   body {
     background: var(--bg);
-    background-image:
-      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(255,79,216,.18), transparent),
-      radial-gradient(ellipse 70% 40% at 80% 110%, rgba(55,230,255,.12), transparent);
+    background-image: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(55,230,255,.07), transparent);
     color: var(--text);
     font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
     padding-bottom: 60px;
@@ -49,24 +47,13 @@
   header { text-align: center; padding: 56px 16px 8px; }
   h1 {
     margin: 0;
-    font-size: clamp(34px, 7vw, 58px);
+    font-size: clamp(32px, 6vw, 52px);
     font-weight: 900;
-    letter-spacing: 2px;
-    background: linear-gradient(90deg, var(--neon-cyan), var(--neon-pink), var(--neon-yellow));
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    filter: drop-shadow(0 0 18px rgba(255,79,216,.35));
+    letter-spacing: -1px;
+    color: var(--text);
   }
-  .subtitle { color: var(--dim); font-size: 17px; margin-top: 10px; }
-  .marquee {
-    display: inline-block; margin-top: 18px; padding: 7px 22px;
-    border: 1px solid rgba(55,230,255,.4); border-radius: 999px;
-    color: var(--neon-cyan); font-size: 14px; letter-spacing: 3px;
-    text-shadow: 0 0 8px rgba(55,230,255,.6);
-    animation: blink 2.2s ease-in-out infinite;
-  }
-  @keyframes blink { 50% { opacity: .45; } }
+  h1 em { font-style: normal; color: var(--neon-cyan); }
+  .subtitle { color: var(--dim); font-size: 16px; margin-top: 10px; }
 
   /* 게임 그리드 */
   .grid {
@@ -89,16 +76,14 @@
     transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
   }
   .game-card.playable:hover {
-    transform: translateY(-6px);
-    border-color: rgba(55,230,255,.55);
-    box-shadow: 0 10px 34px rgba(55,230,255,.22), 0 0 0 1px rgba(55,230,255,.25);
+    transform: translateY(-4px);
+    border-color: rgba(55,230,255,.5);
   }
   .thumb {
-    height: 140px;
+    height: 132px;
     display: flex; align-items: center; justify-content: center;
-    font-size: 64px;
-    text-shadow: 0 6px 18px rgba(0,0,0,.45);
   }
+  .thumb svg { width: 64px; height: 64px; }
   .body { padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
   .body h2 { margin: 0; font-size: 20px; font-weight: 800; }
   .body p { margin: 0; font-size: 14px; color: var(--dim); line-height: 1.55; flex: 1; }
@@ -107,25 +92,20 @@
     font-size: 12px; padding: 3px 10px; border-radius: 999px;
     background: rgba(255,255,255,.08); color: var(--dim);
   }
-  .tag.plays { background: rgba(255,79,216,.16); color: var(--neon-pink); font-weight: 700; }
-  .tag.top1 { background: rgba(255,217,59,.18); color: var(--neon-yellow); font-weight: 700; }
+  .tag.plays { background: rgba(55,230,255,.1); color: var(--neon-cyan); font-weight: 700; }
+  .tag.top1 { background: var(--neon-cyan); color: #06222b; font-weight: 800; }
   .play {
     margin-top: 10px; text-align: center;
     padding: 10px; border-radius: 10px;
-    font-weight: 800; font-size: 15px; letter-spacing: 1px;
-    background: linear-gradient(90deg, var(--neon-pink), #b44fff);
-    color: #fff;
-    box-shadow: 0 4px 16px rgba(255,79,216,.35);
+    font-weight: 800; font-size: 15px;
+    background: var(--neon-cyan); color: #06222b;
   }
-  .game-card.soon { opacity: .55; filter: saturate(.5); cursor: default; }
-  .game-card.soon .play {
-    background: rgba(255,255,255,.1); color: var(--dim); box-shadow: none;
-  }
-  .ribbon {
-    position: absolute; top: 12px; right: -34px;
-    transform: rotate(38deg);
-    background: var(--neon-yellow); color: #5b4300;
-    font-size: 12px; font-weight: 800; padding: 4px 40px;
+  .game-card.soon { opacity: .55; cursor: default; }
+  .game-card.soon .play { background: rgba(255,255,255,.1); color: var(--dim); }
+  .badge {
+    position: absolute; top: 12px; right: 12px;
+    background: rgba(255,255,255,.12); color: var(--dim);
+    font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 999px;
   }
 
   footer { text-align: center; margin-top: 60px; color: var(--dim); font-size: 13px; }
@@ -155,47 +135,46 @@
 <div class="lang-wrap"><select id="langSel" aria-label="Language"></select></div>
 
 <header>
-  <h1 id="siteTitle">🕹️ 3D 오락실</h1>
+  <h1 id="siteTitle">3D <em>오락실</em></h1>
   <div class="subtitle" id="subtitle">추억의 게임들, 3D로 다시 태어나다</div>
-  <div class="marquee">INSERT COIN ▶ PRESS START</div>
 </header>
 
 <!-- 게임 카드: JS로 채우되, 크롤러·JS 비활성 환경을 위해 기본 목록을 정적으로 둔다 -->
 <main class="grid" id="grid">
   <a class="game-card playable" href="player.html?game=wing-dodge-3d">
-    <div class="thumb" style="background: linear-gradient(135deg, #70c5ce, #3d92cf)">🪽</div>
+    <div class="thumb" style="background:#3d92cf"><svg viewBox="0 0 48 48" fill="none"><path d="M7 34C14 15 29 8 41 8 37 22 26 32 11 35Z" stroke="#fff" stroke-width="3" stroke-linejoin="round"/><path d="M9 32C18 27 27 22 33 15" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/></svg></div>
     <div class="body">
       <h2>윙 닷지 3D</h2>
       <p>사방에서 튀어나오는 장애물을 피해 날아라! 4개 월드 · 별 상점 · 15개 언어</p>
       <div class="tags"><span class="tag">클래식</span><span class="tag">아케이드</span></div>
-      <div class="play">▶ 플레이</div>
+      <div class="play">플레이</div>
     </div>
   </a>
   <a class="game-card playable" href="player.html?game=bounceball3d">
-    <div class="thumb" style="background: linear-gradient(135deg, #ff6b6b, #c0392b)">🔴</div>
+    <div class="thumb" style="background:#c0392b"><svg viewBox="0 0 48 48" fill="none"><path d="M8 38 22 18 36 38" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity=".55"/><circle cx="22" cy="14" r="7" stroke="#fff" stroke-width="3"/><path d="M6 42h36" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg></div>
     <div class="body">
       <h2>3D 바운스볼</h2>
       <p>별을 모두 모아 EXIT까지! 가시·스프링·부서지는 블록 — 스테이지 클리어 액션</p>
       <div class="tags"><span class="tag">클래식</span><span class="tag">퍼즐</span></div>
-      <div class="play">▶ 플레이</div>
+      <div class="play">플레이</div>
     </div>
   </a>
   <a class="game-card playable" href="player.html?game=skybounce3d">
-    <div class="thumb" style="background: linear-gradient(135deg, #ffd76e, #ff8c42)">☁️</div>
+    <div class="thumb" style="background:#ff8c42"><svg viewBox="0 0 48 48" fill="none"><path d="M24 36V12M24 12l-8 8M24 12l8 8" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 42h12M28 42h12" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".6"/></svg></div>
     <div class="body">
       <h2>스카이 바운스 3D</h2>
       <p>쉴 새 없이 튀는 공을 조종해 발판을 밟고 하늘 끝까지! 무한 상승 아케이드</p>
       <div class="tags"><span class="tag">아케이드</span></div>
-      <div class="play">▶ 플레이</div>
+      <div class="play">플레이</div>
     </div>
   </a>
   <a class="game-card playable" href="player.html?game=snake3d">
-    <div class="thumb" style="background: linear-gradient(135deg, #7bd88f, #2e8b57)">🐍</div>
+    <div class="thumb" style="background:#2e8b57"><svg viewBox="0 0 48 48" fill="none"><path d="M10 14c14 0 14 10 2 10s-12 10 4 10h18" stroke="#fff" stroke-width="3.2" stroke-linecap="round"/><circle cx="36" cy="34" r="4" fill="#fff"/></svg></div>
     <div class="body">
       <h2>3D 스네이크</h2>
       <p>카메라가 뱀 뒤를 따라간다! 좌우 회전만으로 먹이를 모으는 뱀 시점 스네이크</p>
       <div class="tags"><span class="tag">클래식</span></div>
-      <div class="play">▶ 플레이</div>
+      <div class="play">플레이</div>
     </div>
   </a>
 </main>
@@ -220,9 +199,9 @@
   // 포털 문구는 ko/en 두 벌 — 그 외 언어는 영어로 표시하되, 게임 안에서는 15개 언어 전부 적용됨
   const I18N = {
     ko: {
-      title: '🕹️ 3D 오락실',
+      title: '3D <em>오락실</em>',
       subtitle: '추억의 게임들, 3D로 다시 태어나다',
-      play: '▶ 플레이', soon: '출시 예정',
+      play: '플레이', soon: '준비 중',
       tags: { '클래식': '클래식', '아케이드': '아케이드', '퍼즐': '퍼즐' },
       aboutHtml: `
         <h2>3D 오락실은 어떤 곳인가요?</h2>
@@ -238,9 +217,9 @@
       footHtml: `© 2026 Arcade3D · <a href="about.html">사이트 소개</a> · <a href="guides.html">게임 가이드</a> · <a href="privacy.html">개인정보처리방침</a> · 문의 <a href="mailto:korea885642@gmail.com">korea885642@gmail.com</a>`,
     },
     en: {
-      title: '🕹️ Arcade3D',
+      title: 'Arcade<em>3D</em>',
       subtitle: 'Classic games, reborn in 3D',
-      play: '▶ PLAY', soon: 'Coming soon',
+      play: 'PLAY', soon: 'Coming soon',
       tags: { '클래식': 'Classic', '아케이드': 'Arcade', '퍼즐': 'Puzzle' },
       aboutHtml: `
         <h2>What is Arcade3D?</h2>
@@ -265,7 +244,7 @@
   const sel = document.getElementById('langSel');
   for (const [code, name] of ARCADE_LANGS) {
     const o = document.createElement('option');
-    o.value = code; o.textContent = '🌐 ' + name;
+    o.value = code; o.textContent = name;
     sel.appendChild(o);
   }
   sel.value = lang;
@@ -289,12 +268,21 @@
   }
   loadPlayCounts();
 
+  const GAME_ICONS = {
+    'wing-dodge-3d': $icoWing,
+    'bounceball3d': $icoBall,
+    'skybounce3d': $icoSky,
+    'snake3d': $icoSnake,
+    'breakout3d': $icoBrick,
+  };
+  const GAME_BG = { 'wing-dodge-3d': '#3d92cf', 'bounceball3d': '#c0392b', 'skybounce3d': '#ff8c42', 'snake3d': '#2e8b57', 'breakout3d': '#d84b2a' };
+
   const grid = document.getElementById('grid');
   function render() {
     const T = I18N[lang] || I18N.en;
     const ko = lang === 'ko';
     document.documentElement.lang = lang;
-    document.getElementById('siteTitle').textContent = T.title;
+    document.getElementById('siteTitle').innerHTML = T.title;
     document.getElementById('subtitle').textContent = T.subtitle;
     document.getElementById('about').innerHTML = T.aboutHtml;
     document.getElementById('foot').innerHTML = T.footHtml;
@@ -316,17 +304,17 @@
       if (playable) el.href = 'player.html?game=' + encodeURIComponent(g.id);
       const count = playable && playCounts ? (playCounts[g.id] || 0) : 0;
       const badges =
-        (g.id === topId ? `<span class="tag top1">🏆 ${ko ? '인기 1위' : '#1 Popular'}</span>` : '') +
-        (count > 0 ? `<span class="tag plays">🔥 ${fmt.format(count)} ${ko ? '플레이' : 'plays'}</span>` : '');
+        (g.id === topId ? `<span class="tag top1">${ko ? '인기 1위' : '#1'}</span>` : '') +
+        (count > 0 ? `<span class="tag plays">${fmt.format(count)} ${ko ? '플레이' : 'plays'}</span>` : '');
       el.innerHTML = `
-        <div class="thumb" style="background: linear-gradient(135deg, ${g.color1}, ${g.color2})">${g.emoji}</div>
+        <div class="thumb" style="background:${GAME_BG[g.id] || g.color2}">${GAME_ICONS[g.id] || ''}</div>
         <div class="body">
           <h2>${ko ? g.title : (g.titleEn || g.title)}</h2>
           <p>${ko ? g.desc : (g.descEn || g.desc)}</p>
           <div class="tags">${badges}${g.tags.map(t => `<span class="tag">${T.tags[t] || t}</span>`).join('')}</div>
           <div class="play">${playable ? T.play : T.soon}</div>
         </div>
-        ${playable ? '' : '<div class="ribbon">COMING SOON</div>'}`;
+        ${playable ? '' : `<div class="badge">${ko ? '준비 중' : 'Soon'}</div>`}`;
       grid.appendChild(el);
     }
   }

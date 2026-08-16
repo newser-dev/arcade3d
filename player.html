@@ -67,7 +67,7 @@
   const game = GAMES.find(g => g.id === id);
   if (game && game.path) {
     const title = ko ? game.title : (game.titleEn || game.title);
-    document.getElementById('title').textContent = game.emoji + ' ' + title;
+    document.getElementById('title').textContent = title;
     document.title = title + (ko ? ' — 3D 오락실' : ' — Arcade3D');
     document.getElementById('frame').src = game.path;
 
